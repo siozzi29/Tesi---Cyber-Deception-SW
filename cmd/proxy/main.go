@@ -2,6 +2,7 @@ package main
 
 import (
 	"context"
+	"fmt"
 	"log"
 	"net/http"
 	"os"
@@ -9,14 +10,14 @@ import (
 	"syscall"
 	"time"
 
-	// Assicurati che "cyber-deception-waap" sia il nome esatto del tuo go.mod
 	"cyber-deception-waap/pkg/interceptor"
 	"cyber-deception-waap/pkg/listener"
+	"cyber-deception-waap/pkg/router"
 )
 
 // =====================================================================
 // MOCK DEI SOTTOSISTEMI (Livello 3 - Modello C4)
-// Usiamo queste struct finte solo per testare che l'architettura compili
+// Usiamo queste struct finte solo per i moduli non ancora implementati
 // =====================================================================
 
 type MockAI struct{}
@@ -31,15 +32,6 @@ type MockInjector struct{}
 func (m *MockInjector) IsHoneyURL(path string) bool { return false }
 func (m *MockInjector) Inject(body []byte) []byte   { return body }
 
-type MockRouter struct{}
-
-func (m *MockRouter) Forward(w http.ResponseWriter, r *http.Request) {
-	log.Println("[MOCK ROUTER] Instradamento verso l'Infrastruttura Reale in < 2ms...")
-}
-func (m *MockRouter) TarpitAndTrap(w http.ResponseWriter, r *http.Request) {
-	log.Println("[MOCK ROUTER] Tarpitting attivato: Attaccante intrappolato!")
-}
-
 type MockTelemetry struct{}
 
 func (m *MockTelemetry) LogAsync(r *http.Request, riskScore float64, isPoisoned bool) {
@@ -52,30 +44,40 @@ func (m *MockTelemetry) LogAsync(r *http.Request, riskScore float64, isPoisoned 
 func main() {
 	log.Println("Inizializzazione Reverse Proxy WAAP...")
 
-	// 1. Instanziamo i nostri moduli "finti"
+	// 1. Router reale: fail-fast se manca la configurazione del backend
+	backendURL := os.Getenv("BACKEND_URL")
+	if backendURL == "" {
+		panic("BACKEND_URL non impostata: il proxy non ha nulla a cui inoltrare il traffico")
+	}
+
+	realRouter, err := router.NewLegitTrafficRouter(backendURL)
+	if err != nil {
+		panic(fmt.Sprintf("BACKEND_URL non valida: %v", err))
+	}
+
+	// 2. Moduli ancora mock, in attesa di implementazione
 	mockAI := &MockAI{}
 	mockInj := &MockInjector{}
-	mockRouter := &MockRouter{}
 	mockTel := &MockTelemetry{}
 
-	// 2. Creiamo il VERO Security Interceptor, iniettandogli i mock
-	vigile := interceptor.NewSecurityInterceptor(mockAI, mockInj, mockRouter, mockTel)
+	// 3. Creiamo il VERO Security Interceptor, iniettandogli mock + router reale
+	vigile := interceptor.NewSecurityInterceptor(mockAI, mockInj, realRouter, mockTel)
 
-	// 3. Passiamo il vigile al Listener che hai già scritto in precedenza
+	// 4. Passiamo il vigile al Listener che hai già scritto in precedenza
 	srv := listener.NewServer(":8080", vigile)
 
-	// 4. Prepariamo il canale per il Graceful Shutdown
+	// 5. Prepariamo il canale per il Graceful Shutdown
 	stopChan := make(chan os.Signal, 1)
 	signal.Notify(stopChan, os.Interrupt, syscall.SIGTERM)
 
-	// 5. Avviamo il server in background
+	// 6. Avviamo il server in background
 	go func() {
 		if err := srv.Start(); err != nil {
 			log.Fatalf("Errore critico del server: %v", err)
 		}
 	}()
 
-	// 6. Restiamo in attesa del segnale di stop (CTRL+C)
+	// 7. Restiamo in attesa del segnale di stop (CTRL+C)
 	<-stopChan
 	log.Println("\nSegnale ricevuto. Inizio Graceful Shutdown...")
 
