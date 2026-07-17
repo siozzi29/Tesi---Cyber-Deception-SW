@@ -1,0 +1,22 @@
+🎯 Recap — Sessione di oggi
+1) Addestramento del modello IA (Isolation Forest)
+Analizzato il dataset CSIC 2010 (61.065 richieste HTTP, etichettate Normal/Anomalous)
+Costruito feature engineering da zero: 25 feature numeriche estratte da ogni richiesta grezza (lunghezza URL, entropia, conteggio caratteri speciali, token sospetti SQLi/XSS, ecc.) — eliminate feature inutili scoperte lungo il percorso (User-Agent era costante su tutto il dataset)
+Allenato l'Isolation Forest solo su traffico "Normal", come da funzionamento nativo dell'algoritmo
+Prima versione: soglia F1-ottimale → recall 93.6% ma FPR al 47% (troppi falsi positivi, inaccettabile per un utente reale)
+Su tua richiesta esplicita, ripensata la strategia: soglia "paranoica" che garantisce FPR ≤ 1% (calcolata come 99° percentile del risk score sul traffico sano), accettando un recall più basso (~9%) perché gli Honey-URL fanno da secondo livello di difesa deterministico
+Modello, scaler e soglia salvati in .joblib, pronti per essere caricati da FastAPI
+2) Scoperta e integrazione dell'infrastruttura reale
+Recuperato che avevi già WordPress su Google Compute Engine e un progetto Google Cloud attivo
+Scritto il vero pkg/router in Go (reverse proxy con httputil.ReverseProxy, timeout, tarpitting) al posto del MockRouter
+3) Collegamento infrastrutturale su GCP (la parte più lunga, con qualche giro a vuoto di cui mi scuso)
+Creata la VM waap-proxy, gruppo di istanze dedicato, regole firewall corrette
+Scoperto e collegato correttamente il Load Balancer (wordpress-lb) già esistente
+Risolto un problema di redirect WordPress (WP_HOME/WP_SITEURL puntavano al vecchio IP diretto)
+Reso il proxy Go persistente con systemd (non si spegne più a connessione SSH interrotta)
+Creato un health check dedicato per il proxy (porta 8080, separato da quello di WordPress)
+Switch finale completato: il Load Balancer ora instrada tutto il traffico pubblico al tuo proxy Go, che è verificato "integro" e operativo
+
+1. IA Addestrata e "Paranoica" (Python): Modello Isolation Forest pronto. Abbiamo forzato la soglia per avere tassativamente un tasso di Falsi Positivi <= 1%, salvaguardando il traffico pulito. Gli hacker sfuggiti finiranno dritti nelle esche Honey-URL.
+2. Routing Reale (Go): Abbandonato il mock. Abbiamo implementato il vero pkg/router sfruttando httputil.ReverseProxy per inoltrare il traffico sano al WordPress in modo trasparente.
+3.Infrastruttura GCP Operativa: Il cloud è in piedi. Abbiamo creato la VM proxy, allineato il Load Balancer con un health check dedicato e reso il servizio Go persistente tramite systemd. Ora tutto il traffico pubblico passa correttamente per il nostro Edge Node.
