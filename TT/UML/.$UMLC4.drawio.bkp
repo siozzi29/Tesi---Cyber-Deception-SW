@@ -1,0 +1,405 @@
+<mxfile host="app.diagrams.net" pages="3">
+  <diagram name="L1" id="e9edgrRPHVX7OLyr8zRi">
+    <mxGraphModel dx="2175" dy="1195" grid="1" gridSize="10" guides="1" tooltips="1" connect="1" arrows="1" fold="1" page="1" pageScale="1" pageWidth="827" pageHeight="1169" math="0" shadow="0">
+      <root>
+        <mxCell id="0" />
+        <mxCell id="1" parent="0" />
+        <UserObject label="" mermaidData="{&#xa;  &quot;data&quot;: &quot;C4Context\ntitle Diagramma di Contesto (C4 Livello 1) - Framework di Cyber Deception\n\nPerson(User, \&quot;Utente / Attaccante\&quot;, \&quot;Genera traffico web legittimo o tentativi di exploit/brute force.\&quot;)\nSystem_Ext(WAF, \&quot;Google Cloud Armor (WAF)\&quot;, \&quot;Protezione perimetrale deterministica basata su regole e signature (OWASP Top 10).\&quot;)\nSystem(System, \&quot;Framework di Cyber Deception\&quot;, \&quot;Rileva anomalie comportamentali (ATO, Zero-Day) e inietta Honey-URL attivi a runtime.\&quot;)\nSystem_Ext(Infra, \&quot;Infrastruttura Reale\&quot;, \&quot;I servizi applicativi e i backend di produzione autentici dell&#39;azienda.\&quot;)\nSystem_Ext(Obs, \&quot;Piattaforma di Monitoraggio\&quot;, \&quot;Pipeline di ingestion log (Fluent Bit/BigQuery) e telemetria OpenTelemetry.\&quot;)\n\nRel(User, WAF, \&quot;Invia richiesta HTTP/S\&quot;)\nRel(WAF, System, \&quot;Inoltra traffico filtrato\&quot;)\nRel(System, Infra, \&quot;Inoltra traffico legittimo\&quot;, \&quot;HTTP, latenza &lt; 2ms\&quot;)\nRel(System, Obs, \&quot;Invia alert / dati di deception\&quot;, \&quot;JSON / OpenTelemetry, asincrono\&quot;)&quot;,&#xa;  &quot;config&quot;: null&#xa;}" id="ynkgM1FAhVizOsu-Nk8o-2">
+          <mxCell connectable="0" parent="1" style="group;transparentBounds=1;editIcon=1;lockedGroup=0;groupPadding=20;" vertex="1">
+            <mxGeometry height="1356" width="997" as="geometry" />
+          </mxCell>
+        </UserObject>
+        <UserObject label="&lt;div style=&quot;font-size:12px;font-style:italic;&quot;&gt;&amp;lt;&amp;lt;person&amp;gt;&amp;gt;&lt;/div&gt;&lt;div style=&quot;margin-top:2px;&quot;&gt;&lt;img src=&quot;data:image/png;base64,iVBORw0KGgoAAAANSUhEUgAAADAAAAAwCAIAAADYYG7QAAACD0lEQVR4Xu2YoU4EMRCGT+4j8Ai8AhaH4QHgAUjQuFMECUgMIUgwJAgMhgQsAYUiJCiQIBBY+EITsjfTdme6V24v4c8vyGbb+ZjOtN0bNcvjQXmkH83WvYBWto6PLm6v7p7uH1/w2fXD+PBycX1Pv2l3IdDm/vn7x+dXQiAubRzoURa7gRZWd0iGRIiJbOnhnfYBQZNJjNbuyY2eJG8fkDE3bbG4ep6MHUAsgYxmE3nVs6VsBWJSGccsOlFPmLIViMzLOB7pCVO2AtHJMohH7Fh6zqitQK7m0rJvAVYgGcEpe//PLdDz65sM4pF9N7ICcXDKIB5Nv6j7tD0NoSdM2QrU9Gg0ewE1LqBhHR3BBdvj2vapnidjHxD/q6vd7Pvhr31AwcY8eXMTXAKECZZJFXuEq27aLgQK5uLMohCenGGuGewOxSjBvYBqeG6B+Nqiblggdjnc+ZXDy+FNFpFzw76O3UBAROuXh6FoiAcf5g9eTvUgzy0nWg6I8cXHRUpg5bOVBCo+KDpFajOf23GgPme7RSQ+lacIENUgJ6gg1k6HjgOlqnLqip4tEuhv0hNEMXUD0clyXE3p6pZA0S2nnvTlXwLJEZWlb7cTQH1+USgTN4VhAenm/wea1OCAOmqo6fE1WCb9WSKBah+rbUWPWAmE2Rvk0ApiB45eOyNAzU8xcTvj8KvkKEoOaIYeHNA3ZuygAvFMUO0AAAAASUVORK5CYII=&quot; width=&quot;48&quot; height=&quot;48&quot; /&gt;&lt;/div&gt;&lt;div style=&quot;font-size:16px;font-weight:bold;margin-top:4px;&quot;&gt;Utente / Attaccante&lt;/div&gt;&lt;div style=&quot;font-size:14px;margin-top:20px;&quot;&gt;Genera traffico web legittimo o tentativi di exploit/brute force.&lt;/div&gt;" mermaidId="n:User" mermaidBaseStyle="rounded=1;arcSize=4;whiteSpace=wrap;html=1;fillColor=#08427B;strokeColor=#073B6F;strokeWidth=1;fontColor=#FFFFFF;align=center;verticalAlign=middle;fontFamily=Open Sans,sans-serif;" mermaidBaseValue="&lt;div style=&quot;font-size:12px;font-style:italic;&quot;&gt;&amp;lt;&amp;lt;person&amp;gt;&amp;gt;&lt;/div&gt;&lt;div style=&quot;margin-top:2px;&quot;&gt;&lt;img src=&quot;data:image/png;base64,iVBORw0KGgoAAAANSUhEUgAAADAAAAAwCAIAAADYYG7QAAACD0lEQVR4Xu2YoU4EMRCGT+4j8Ai8AhaH4QHgAUjQuFMECUgMIUgwJAgMhgQsAYUiJCiQIBBY+EITsjfTdme6V24v4c8vyGbb+ZjOtN0bNcvjQXmkH83WvYBWto6PLm6v7p7uH1/w2fXD+PBycX1Pv2l3IdDm/vn7x+dXQiAubRzoURa7gRZWd0iGRIiJbOnhnfYBQZNJjNbuyY2eJG8fkDE3bbG4ep6MHUAsgYxmE3nVs6VsBWJSGccsOlFPmLIViMzLOB7pCVO2AtHJMohH7Fh6zqitQK7m0rJvAVYgGcEpe//PLdDz65sM4pF9N7ICcXDKIB5Nv6j7tD0NoSdM2QrU9Gg0ewE1LqBhHR3BBdvj2vapnidjHxD/q6vd7Pvhr31AwcY8eXMTXAKECZZJFXuEq27aLgQK5uLMohCenGGuGewOxSjBvYBqeG6B+Nqiblggdjnc+ZXDy+FNFpFzw76O3UBAROuXh6FoiAcf5g9eTvUgzy0nWg6I8cXHRUpg5bOVBCo+KDpFajOf23GgPme7RSQ+lacIENUgJ6gg1k6HjgOlqnLqip4tEuhv0hNEMXUD0clyXE3p6pZA0S2nnvTlXwLJEZWlb7cTQH1+USgTN4VhAenm/wea1OCAOmqo6fE1WCb9WSKBah+rbUWPWAmE2Rvk0ApiB45eOyNAzU8xcTvj8KvkKEoOaIYeHNA3ZuygAvFMUO0AAAAASUVORK5CYII=&quot; width=&quot;48&quot; height=&quot;48&quot; /&gt;&lt;/div&gt;&lt;div style=&quot;font-size:16px;font-weight:bold;margin-top:4px;&quot;&gt;Utente / Attaccante&lt;/div&gt;&lt;div style=&quot;font-size:14px;margin-top:20px;&quot;&gt;Genera traffico web legittimo o tentativi di exploit/brute force.&lt;/div&gt;" id="ynkgM1FAhVizOsu-Nk8o-4">
+          <mxCell parent="ynkgM1FAhVizOsu-Nk8o-2" style="rounded=1;arcSize=4;whiteSpace=wrap;html=1;fillColor=#1ba1e2;strokeColor=#006EAF;strokeWidth=1;fontColor=#ffffff;align=center;verticalAlign=middle;fontFamily=Open Sans,sans-serif;" vertex="1">
+            <mxGeometry height="134" width="410" x="283.5" y="650" as="geometry" />
+          </mxCell>
+        </UserObject>
+        <UserObject label="&lt;div style=&quot;font-size:12px;font-style:italic;&quot;&gt;&amp;lt;&amp;lt;external_system&amp;gt;&amp;gt;&lt;/div&gt;&lt;div style=&quot;font-size:16px;font-weight:bold;margin-top:4px;&quot;&gt;Google Cloud Armor (WAF)&lt;/div&gt;&lt;div style=&quot;font-size:14px;margin-top:20px;&quot;&gt;Protezione perimetrale deterministica basata su regole e signature (OWASP Top 10).&lt;/div&gt;" mermaidId="n:WAF" mermaidBaseStyle="rounded=1;arcSize=4;whiteSpace=wrap;html=1;fillColor=#999999;strokeColor=#8A8A8A;strokeWidth=1;fontColor=#FFFFFF;align=center;verticalAlign=middle;fontFamily=Open Sans,sans-serif;" mermaidBaseValue="&lt;div style=&quot;font-size:12px;font-style:italic;&quot;&gt;&amp;lt;&amp;lt;external_system&amp;gt;&amp;gt;&lt;/div&gt;&lt;div style=&quot;font-size:16px;font-weight:bold;margin-top:4px;&quot;&gt;Google Cloud Armor (WAF)&lt;/div&gt;&lt;div style=&quot;font-size:14px;margin-top:20px;&quot;&gt;Protezione perimetrale deterministica basata su regole e signature (OWASP Top 10).&lt;/div&gt;" id="ynkgM1FAhVizOsu-Nk8o-5">
+          <mxCell parent="ynkgM1FAhVizOsu-Nk8o-2" style="rounded=1;arcSize=4;whiteSpace=wrap;html=1;fillColor=#647687;strokeColor=#314354;strokeWidth=1;fontColor=#ffffff;align=center;verticalAlign=middle;fontFamily=Open Sans,sans-serif;" vertex="1">
+            <mxGeometry height="90" width="540" x="218.5" y="880" as="geometry" />
+          </mxCell>
+        </UserObject>
+        <UserObject label="&lt;div style=&quot;font-size:12px;font-style:italic;&quot;&gt;&amp;lt;&amp;lt;system&amp;gt;&amp;gt;&lt;/div&gt;&lt;div style=&quot;font-size:16px;font-weight:bold;margin-top:4px;&quot;&gt;Framework di Cyber Deception&lt;/div&gt;&lt;div style=&quot;font-size:14px;margin-top:20px;&quot;&gt;Rileva anomalie comportamentali (ATO, Zero-Day) e inietta Honey-URL attivi a runtime.&lt;/div&gt;" mermaidId="n:System" mermaidBaseStyle="rounded=1;arcSize=4;whiteSpace=wrap;html=1;fillColor=#1168BD;strokeColor=#3C7FC0;strokeWidth=1;fontColor=#FFFFFF;align=center;verticalAlign=middle;fontFamily=Open Sans,sans-serif;" mermaidBaseValue="&lt;div style=&quot;font-size:12px;font-style:italic;&quot;&gt;&amp;lt;&amp;lt;system&amp;gt;&amp;gt;&lt;/div&gt;&lt;div style=&quot;font-size:16px;font-weight:bold;margin-top:4px;&quot;&gt;Framework di Cyber Deception&lt;/div&gt;&lt;div style=&quot;font-size:14px;margin-top:20px;&quot;&gt;Rileva anomalie comportamentali (ATO, Zero-Day) e inietta Honey-URL attivi a runtime.&lt;/div&gt;" id="ynkgM1FAhVizOsu-Nk8o-6">
+          <mxCell parent="ynkgM1FAhVizOsu-Nk8o-2" style="rounded=1;arcSize=4;whiteSpace=wrap;html=1;fillColor=#1ba1e2;strokeColor=#006EAF;strokeWidth=1;fontColor=#ffffff;align=center;verticalAlign=middle;fontFamily=Open Sans,sans-serif;" vertex="1">
+            <mxGeometry height="96" width="557" x="201.5" y="1040" as="geometry" />
+          </mxCell>
+        </UserObject>
+        <UserObject label="&lt;div style=&quot;font-size:12px;font-style:italic;&quot;&gt;&amp;lt;&amp;lt;external_system&amp;gt;&amp;gt;&lt;/div&gt;&lt;div style=&quot;font-size:16px;font-weight:bold;margin-top:4px;&quot;&gt;Infrastruttura Reale&lt;/div&gt;&lt;div style=&quot;font-size:14px;margin-top:20px;&quot;&gt;I servizi applicativi e i backend di produzione autentici dell&amp;#39;azienda.&lt;/div&gt;" mermaidId="n:Infra" mermaidBaseStyle="rounded=1;arcSize=4;whiteSpace=wrap;html=1;fillColor=#999999;strokeColor=#8A8A8A;strokeWidth=1;fontColor=#FFFFFF;align=center;verticalAlign=middle;fontFamily=Open Sans,sans-serif;" mermaidBaseValue="&lt;div style=&quot;font-size:12px;font-style:italic;&quot;&gt;&amp;lt;&amp;lt;external_system&amp;gt;&amp;gt;&lt;/div&gt;&lt;div style=&quot;font-size:16px;font-weight:bold;margin-top:4px;&quot;&gt;Infrastruttura Reale&lt;/div&gt;&lt;div style=&quot;font-size:14px;margin-top:20px;&quot;&gt;I servizi applicativi e i backend di produzione autentici dell&amp;#39;azienda.&lt;/div&gt;" id="ynkgM1FAhVizOsu-Nk8o-7">
+          <mxCell parent="ynkgM1FAhVizOsu-Nk8o-2" style="rounded=1;arcSize=4;whiteSpace=wrap;html=1;fillColor=#647687;strokeColor=#314354;strokeWidth=1;fontColor=#ffffff;align=center;verticalAlign=middle;fontFamily=Open Sans,sans-serif;" vertex="1">
+            <mxGeometry height="96" width="437" x="540" y="1240" as="geometry" />
+          </mxCell>
+        </UserObject>
+        <UserObject label="&lt;div style=&quot;font-size:12px;font-style:italic;&quot;&gt;&amp;lt;&amp;lt;external_system&amp;gt;&amp;gt;&lt;/div&gt;&lt;div style=&quot;font-size:16px;font-weight:bold;margin-top:4px;&quot;&gt;Piattaforma di Monitoraggio&lt;/div&gt;&lt;div style=&quot;font-size:14px;margin-top:20px;&quot;&gt;Pipeline di ingestion log (Fluent Bit/BigQuery) e telemetria OpenTelemetry.&lt;/div&gt;" mermaidId="n:Obs" mermaidBaseStyle="rounded=1;arcSize=4;whiteSpace=wrap;html=1;fillColor=#999999;strokeColor=#8A8A8A;strokeWidth=1;fontColor=#FFFFFF;align=center;verticalAlign=middle;fontFamily=Open Sans,sans-serif;" mermaidBaseValue="&lt;div style=&quot;font-size:12px;font-style:italic;&quot;&gt;&amp;lt;&amp;lt;external_system&amp;gt;&amp;gt;&lt;/div&gt;&lt;div style=&quot;font-size:16px;font-weight:bold;margin-top:4px;&quot;&gt;Piattaforma di Monitoraggio&lt;/div&gt;&lt;div style=&quot;font-size:14px;margin-top:20px;&quot;&gt;Pipeline di ingestion log (Fluent Bit/BigQuery) e telemetria OpenTelemetry.&lt;/div&gt;" id="ynkgM1FAhVizOsu-Nk8o-8">
+          <mxCell parent="ynkgM1FAhVizOsu-Nk8o-2" style="rounded=1;arcSize=4;whiteSpace=wrap;html=1;fillColor=#647687;strokeColor=#314354;strokeWidth=1;fontColor=#ffffff;align=center;verticalAlign=middle;fontFamily=Open Sans,sans-serif;" vertex="1">
+            <mxGeometry height="96" width="484" x="30" y="1240" as="geometry" />
+          </mxCell>
+        </UserObject>
+        <UserObject label="Invia richiesta HTTP/S" mermaidId="e:User-&gt;WAF#0" mermaidBaseStyle="endArrow=block;html=1;strokeColor=#444444;strokeWidth=1;fontSize=11;fontColor=#444444;labelBackgroundColor=none;exitX=0.6592850224531126;exitY=1;entryX=0.5977489465513417;entryY=0;align=center;verticalAlign=middle;" mermaidBaseValue="Invia richiesta HTTP/S" id="ynkgM1FAhVizOsu-Nk8o-9">
+          <mxCell edge="1" parent="ynkgM1FAhVizOsu-Nk8o-2" source="ynkgM1FAhVizOsu-Nk8o-4" style="endArrow=block;html=1;strokeColor=#444444;strokeWidth=1;fontSize=11;fontColor=#444444;labelBackgroundColor=none;exitX=0.5;exitY=1;entryX=0.5;entryY=0;align=center;verticalAlign=middle;rounded=0;exitDx=0;exitDy=0;entryDx=0;entryDy=0;" target="ynkgM1FAhVizOsu-Nk8o-5">
+            <mxGeometry relative="1" as="geometry" />
+          </mxCell>
+        </UserObject>
+        <UserObject label="Inoltra traffico filtrato" mermaidId="e:WAF-&gt;System#1" mermaidBaseStyle="endArrow=block;html=1;strokeColor=#444444;strokeWidth=1;curved=1;fontSize=11;fontColor=#444444;labelBackgroundColor=none;exitX=0.5968421478246806;exitY=1;entryX=0.6457608818470578;entryY=0;align=center;verticalAlign=middle;" mermaidBaseValue="Inoltra traffico filtrato" id="ynkgM1FAhVizOsu-Nk8o-10">
+          <mxCell edge="1" parent="ynkgM1FAhVizOsu-Nk8o-2" source="ynkgM1FAhVizOsu-Nk8o-5" style="endArrow=block;html=1;strokeColor=#444444;strokeWidth=1;curved=1;fontSize=11;fontColor=#444444;labelBackgroundColor=none;exitX=0.5;exitY=1;entryX=0.513;entryY=-0.009;align=center;verticalAlign=middle;rounded=0;exitDx=0;exitDy=0;entryDx=0;entryDy=0;entryPerimeter=0;" target="ynkgM1FAhVizOsu-Nk8o-6">
+            <mxGeometry relative="1" as="geometry">
+              <Array as="points" />
+            </mxGeometry>
+          </mxCell>
+        </UserObject>
+        <UserObject label="Inoltra traffico legittimo&lt;br&gt;&lt;i&gt;[HTTP, latenza &amp;lt; 2ms]&lt;/i&gt;" mermaidId="e:System-&gt;Infra#2" mermaidBaseStyle="endArrow=block;html=1;strokeColor=#444444;strokeWidth=1;curved=1;fontSize=11;fontColor=#444444;labelBackgroundColor=none;exitX=0.573659576803368;exitY=1;entryX=0.6916355955257557;entryY=0;align=center;verticalAlign=middle;" mermaidBaseValue="Inoltra traffico legittimo&lt;br&gt;&lt;i&gt;[HTTP, latenza &amp;lt; 2ms]&lt;/i&gt;" id="ynkgM1FAhVizOsu-Nk8o-11">
+          <mxCell edge="1" parent="ynkgM1FAhVizOsu-Nk8o-2" source="ynkgM1FAhVizOsu-Nk8o-6" style="endArrow=block;html=1;strokeColor=#444444;strokeWidth=1;curved=1;fontSize=11;fontColor=#444444;labelBackgroundColor=none;exitX=0.5;exitY=1;entryX=0.6916355955257557;entryY=0;align=center;verticalAlign=middle;rounded=0;exitDx=0;exitDy=0;" target="ynkgM1FAhVizOsu-Nk8o-7">
+            <mxGeometry relative="1" x="0.4886" y="35" as="geometry">
+              <mxPoint as="offset" />
+              <Array as="points">
+                <mxPoint x="585" y="1206" />
+              </Array>
+            </mxGeometry>
+          </mxCell>
+        </UserObject>
+        <UserObject label="Invia alert / dati di deception&lt;br&gt;&lt;i&gt;[JSON / OpenTelemetry, asincrono]&lt;/i&gt;" mermaidId="e:System-&gt;Obs#3" mermaidBaseStyle="endArrow=block;html=1;strokeColor=#444444;strokeWidth=1;curved=1;fontSize=11;fontColor=#444444;labelBackgroundColor=none;exitX=0.5450174125586728;exitY=1;entryX=0.5752059835715542;entryY=0;align=center;verticalAlign=middle;" mermaidBaseValue="Invia alert / dati di deception&lt;br&gt;&lt;i&gt;[JSON / OpenTelemetry, asincrono]&lt;/i&gt;" id="ynkgM1FAhVizOsu-Nk8o-12">
+          <mxCell edge="1" parent="ynkgM1FAhVizOsu-Nk8o-2" source="ynkgM1FAhVizOsu-Nk8o-6" style="endArrow=block;html=1;strokeColor=#444444;strokeWidth=1;curved=1;fontSize=11;fontColor=#444444;labelBackgroundColor=none;exitX=0.5;exitY=1;entryX=0.5752059835715542;entryY=0;align=center;verticalAlign=middle;rounded=0;exitDx=0;exitDy=0;" target="ynkgM1FAhVizOsu-Nk8o-8">
+            <mxGeometry relative="1" x="0.3413" y="-15" as="geometry">
+              <mxPoint as="offset" />
+              <Array as="points">
+                <mxPoint x="410" y="1210" />
+              </Array>
+            </mxGeometry>
+          </mxCell>
+        </UserObject>
+      </root>
+    </mxGraphModel>
+  </diagram>
+  <diagram id="TZJ_2-uBsrJ1gA5MZ5i0" name="L2">
+    <mxGraphModel dx="2571" dy="1413" grid="1" gridSize="10" guides="1" tooltips="1" connect="1" arrows="1" fold="1" page="1" pageScale="1" pageWidth="827" pageHeight="1169" math="0" shadow="0">
+      <root>
+        <mxCell id="0" />
+        <mxCell id="1" parent="0" />
+        <UserObject label="" mermaidData="{&#xa;  &quot;data&quot;: &quot;C4Container\n    title Diagramma dei Container (C4 Livello 2) - Struttura WAAP Ottimizzata\n\n    System_Ext(WAF, \&quot;Google Cloud Armor (WAF)\&quot;, \&quot;Filtro perimetrale OWASP.\&quot;)\n\n    System_Boundary(SystemBoundary, \&quot;Framework Cyber Deception &amp; IA\&quot;) {\n        %% Componenti Core Online\n        Container(Proxy, \&quot;Reverse Proxy Custom\&quot;, \&quot;Go\&quot;, \&quot;Routing e iniezione esche.\&quot;)\n        ContainerDb(Cache, \&quot;Risk Cache\&quot;, \&quot;Redis\&quot;, \&quot;Lookup score in-memory.\&quot;)\n        Container(AIEngine, \&quot;Servizio Inferenza IA\&quot;, \&quot;FastAPI\&quot;, \&quot;Isolation Forest runtime.\&quot;)\n        \n        %% Componente Deception\n        Container(Trap, \&quot;Honeypot (Trap)\&quot;, \&quot;Go\&quot;, \&quot;Tarpitting e Fake Data.\&quot;)\n        \n        %% Pipeline Asincrona e Offline\n        Container(Obs, \&quot;Observability Pipeline\&quot;, \&quot;Fluent Bit\&quot;, \&quot;Ingestion log asincrona.\&quot;)\n        Container(Filter, \&quot;Data Filter\&quot;, \&quot;Go/Python\&quot;, \&quot;Scrubbing anti-poisoning.\&quot;)\n        Container(MLTrain, \&quot;Addestramento Offline\&quot;, \&quot;Python\&quot;, \&quot;Riaddestramento batch.\&quot;)\n        ContainerDb(Registry, \&quot;Model Registry\&quot;, \&quot;Storage\&quot;, \&quot;Pesi del modello aggiornato.\&quot;)\n    }\n\n    System_Ext(RealInfra, \&quot;Infrastruttura Reale\&quot;, \&quot;Backend di produzione autentici.\&quot;)\n\n    %% Ingresso principale\n    Rel(WAF, Proxy, \&quot;Richiesta HTTP/S\&quot;)\n\n    %% Ciclo Sincrono di Ispezione (Sequenziale e pulito)\n    Rel(Proxy, Cache, \&quot;1. Verifica Score\&quot;)\n    Rel(Cache, AIEngine, \&quot;2. Cache Miss: Richiedi Score\&quot;)\n    Rel(AIEngine, Registry, \&quot;Carica pesi modello\&quot;)\n\n    %% Uscite del traffico (Puntano verso il basso e verso le trappole)\n    Rel(Proxy, RealInfra, \&quot;Flusso Sano (&lt; 2ms)\&quot;)\n    Rel(Proxy, Trap, \&quot;Flusso Alert (Attacco)\&quot;)\n\n    %% Pipeline di monitoraggio e addestramento (Flusso lineare isolato)\n    Rel(Proxy, Obs, \&quot;Log OTel (Async)\&quot;)\n    Rel(Obs, Filter, \&quot;Filtra log grezzi\&quot;)\n    Rel(Filter, MLTrain, \&quot;Dataset bonificato\&quot;)\n    Rel(MLTrain, Registry, \&quot;Push nuovo modello\&quot;)&quot;,&#xa;  &quot;config&quot;: null&#xa;}" id="U9amFavDQM3QP5FAxLsL-1">
+          <mxCell connectable="0" parent="1" style="group;transparentBounds=1;editIcon=1;lockedGroup=0;groupPadding=20;" vertex="1">
+            <mxGeometry height="1560" width="1640" as="geometry" />
+          </mxCell>
+        </UserObject>
+        <mxCell id="U9amFavDQM3QP5FAxLsL-2" parent="U9amFavDQM3QP5FAxLsL-1" style="text;html=1;strokeColor=none;fillColor=none;fontSize=16;fontColor=light-dark(#333333,#cccccc);align=left;verticalAlign=top;spacingLeft=163;" value="Diagramma dei Container (C4 Livello 2) - Struttura WAAP Ottimizzata" vertex="1">
+          <mxGeometry height="24" width="826" x="417" y="30" as="geometry" />
+        </mxCell>
+        <UserObject label="&lt;div style=&quot;font-size:12px;font-style:italic;&quot;&gt;&amp;lt;&amp;lt;external_system&amp;gt;&amp;gt;&lt;/div&gt;&lt;div style=&quot;font-size:16px;font-weight:bold;margin-top:4px;&quot;&gt;Google Cloud Armor (WAF)&lt;/div&gt;&lt;div style=&quot;font-size:14px;margin-top:20px;&quot;&gt;Filtro perimetrale OWASP.&lt;/div&gt;" mermaidId="n:WAF" mermaidBaseStyle="rounded=1;arcSize=4;whiteSpace=wrap;html=1;fillColor=#999999;strokeColor=#8A8A8A;strokeWidth=1;fontColor=#FFFFFF;align=center;verticalAlign=middle;fontFamily=Open Sans,sans-serif;" mermaidBaseValue="&lt;div style=&quot;font-size:12px;font-style:italic;&quot;&gt;&amp;lt;&amp;lt;external_system&amp;gt;&amp;gt;&lt;/div&gt;&lt;div style=&quot;font-size:16px;font-weight:bold;margin-top:4px;&quot;&gt;Google Cloud Armor (WAF)&lt;/div&gt;&lt;div style=&quot;font-size:14px;margin-top:20px;&quot;&gt;Filtro perimetrale OWASP.&lt;/div&gt;" id="U9amFavDQM3QP5FAxLsL-3">
+          <mxCell parent="U9amFavDQM3QP5FAxLsL-1" style="rounded=1;arcSize=4;whiteSpace=wrap;html=1;fillColor=#647687;strokeColor=#314354;strokeWidth=1;align=center;verticalAlign=middle;fontFamily=Open Sans,sans-serif;fontColor=#ffffff;" vertex="1">
+            <mxGeometry height="86" width="233" x="713.5" y="150" as="geometry" />
+          </mxCell>
+        </UserObject>
+        <UserObject label="&lt;div style=&quot;font-size:16px;font-weight:bold;&quot;&gt;Framework Cyber Deception &amp;amp; IA&lt;/div&gt;&lt;div style=&quot;font-size:14px;font-weight:normal;margin-top:4px;&quot;&gt;&lt;br&gt;&lt;/div&gt;" mermaidId="n:SystemBoundary" mermaidBaseStyle="rounded=1;absoluteArcSize=1;arcSize=5;whiteSpace=wrap;html=1;fillColor=none;strokeColor=#444444;strokeWidth=1;dashed=1;dashPattern=5 5;verticalAlign=top;align=center;spacingTop=2;fontSize=16;fontStyle=1;fontColor=#444444;fontFamily=Open Sans,sans-serif;" mermaidBaseValue="&lt;div style=&quot;font-size:16px;font-weight:bold;&quot;&gt;Framework Cyber Deception &amp;amp; IA&lt;/div&gt;&lt;div style=&quot;font-size:14px;font-weight:normal;margin-top:4px;&quot;&gt;[SYSTEM]&lt;/div&gt;" id="U9amFavDQM3QP5FAxLsL-4">
+          <mxCell parent="U9amFavDQM3QP5FAxLsL-1" style="rounded=1;absoluteArcSize=1;arcSize=5;whiteSpace=wrap;html=1;fillColor=none;strokeColor=#444444;strokeWidth=1;dashed=1;dashPattern=5 5;verticalAlign=top;align=center;spacingTop=2;fontSize=16;fontStyle=1;fontColor=#444444;fontFamily=Open Sans,sans-serif;fixDash=1;" vertex="1">
+            <mxGeometry height="1200" width="1600" x="30" y="340" as="geometry" />
+          </mxCell>
+        </UserObject>
+        <mxCell id="wxgk3d28kwZp0AZexbF1-8" edge="1" parent="U9amFavDQM3QP5FAxLsL-4" source="U9amFavDQM3QP5FAxLsL-6" style="edgeStyle=orthogonalEdgeStyle;rounded=0;orthogonalLoop=1;jettySize=auto;html=1;exitX=0.5;exitY=0;exitDx=0;exitDy=0;exitPerimeter=0;entryX=0.25;entryY=1;entryDx=0;entryDy=0;curved=1;" target="U9amFavDQM3QP5FAxLsL-5">
+          <mxGeometry relative="1" as="geometry" />
+        </mxCell>
+        <mxCell id="wxgk3d28kwZp0AZexbF1-10" edge="1" parent="U9amFavDQM3QP5FAxLsL-4" source="U9amFavDQM3QP5FAxLsL-6" style="edgeStyle=orthogonalEdgeStyle;rounded=0;orthogonalLoop=1;jettySize=auto;html=1;exitX=0.5;exitY=1;exitDx=0;exitDy=0;exitPerimeter=0;entryX=0.5;entryY=0;entryDx=0;entryDy=0;" target="U9amFavDQM3QP5FAxLsL-7">
+          <mxGeometry relative="1" as="geometry" />
+        </mxCell>
+        <UserObject label="&lt;div style=&quot;font-size:12px;font-style:italic;&quot;&gt;&amp;lt;&amp;lt;container_db&amp;gt;&amp;gt;&lt;/div&gt;&lt;div style=&quot;font-size:16px;font-weight:bold;margin-top:4px;&quot;&gt;Risk Cache&lt;/div&gt;&lt;div style=&quot;font-size:14px;font-style:italic;margin-top:2px;&quot;&gt;[Redis]&lt;/div&gt;&lt;div style=&quot;font-size:14px;margin-top:20px;&quot;&gt;Lookup score in-memory.&lt;/div&gt;" mermaidId="n:Cache" mermaidBaseStyle="shape=cylinder3;whiteSpace=wrap;html=1;boundedLbl=1;backgroundOutline=1;size=10;fillColor=#438DD5;strokeColor=#3C7FC0;strokeWidth=1;fontColor=#FFFFFF;align=center;verticalAlign=middle;fontFamily=Open Sans,sans-serif;" mermaidBaseValue="&lt;div style=&quot;font-size:12px;font-style:italic;&quot;&gt;&amp;lt;&amp;lt;container_db&amp;gt;&amp;gt;&lt;/div&gt;&lt;div style=&quot;font-size:16px;font-weight:bold;margin-top:4px;&quot;&gt;Risk Cache&lt;/div&gt;&lt;div style=&quot;font-size:14px;font-style:italic;margin-top:2px;&quot;&gt;[Redis]&lt;/div&gt;&lt;div style=&quot;font-size:14px;margin-top:20px;&quot;&gt;Lookup score in-memory.&lt;/div&gt;" id="U9amFavDQM3QP5FAxLsL-6">
+          <mxCell parent="U9amFavDQM3QP5FAxLsL-4" style="shape=cylinder3;whiteSpace=wrap;html=1;boundedLbl=1;backgroundOutline=1;size=10;fillColor=#e51400;strokeColor=#B20000;strokeWidth=1;fontColor=#ffffff;align=center;verticalAlign=middle;fontFamily=Open Sans,sans-serif;" vertex="1">
+            <mxGeometry height="164.84" width="230" x="490" y="420" as="geometry" />
+          </mxCell>
+        </UserObject>
+        <UserObject label="&lt;div style=&quot;font-size:12px;font-style:italic;&quot;&gt;&amp;lt;&amp;lt;container&amp;gt;&amp;gt;&lt;/div&gt;&lt;div style=&quot;font-size:16px;font-weight:bold;margin-top:4px;&quot;&gt;Servizio Inferenza IA&lt;/div&gt;&lt;div style=&quot;font-size:14px;font-style:italic;margin-top:2px;&quot;&gt;[FastAPI]&lt;/div&gt;&lt;div style=&quot;font-size:14px;margin-top:20px;&quot;&gt;Isolation Forest runtime.&lt;/div&gt;" mermaidId="n:AIEngine" mermaidBaseStyle="rounded=1;arcSize=4;whiteSpace=wrap;html=1;fillColor=#438DD5;strokeColor=#3C7FC0;strokeWidth=1;fontColor=#FFFFFF;align=center;verticalAlign=middle;fontFamily=Open Sans,sans-serif;" mermaidBaseValue="&lt;div style=&quot;font-size:12px;font-style:italic;&quot;&gt;&amp;lt;&amp;lt;container&amp;gt;&amp;gt;&lt;/div&gt;&lt;div style=&quot;font-size:16px;font-weight:bold;margin-top:4px;&quot;&gt;Servizio Inferenza IA&lt;/div&gt;&lt;div style=&quot;font-size:14px;font-style:italic;margin-top:2px;&quot;&gt;[FastAPI]&lt;/div&gt;&lt;div style=&quot;font-size:14px;margin-top:20px;&quot;&gt;Isolation Forest runtime.&lt;/div&gt;" id="U9amFavDQM3QP5FAxLsL-7">
+          <mxCell parent="U9amFavDQM3QP5FAxLsL-4" style="rounded=1;arcSize=4;whiteSpace=wrap;html=1;fillColor=#1ba1e2;strokeColor=#006EAF;strokeWidth=1;fontColor=#ffffff;align=center;verticalAlign=middle;fontFamily=Open Sans,sans-serif;" vertex="1">
+            <mxGeometry height="138.46" width="296.83" x="456.59000000000003" y="691" as="geometry" />
+          </mxCell>
+        </UserObject>
+        <UserObject label="&lt;div style=&quot;font-size:12px;font-style:italic;&quot;&gt;&amp;lt;&amp;lt;container&amp;gt;&amp;gt;&lt;/div&gt;&lt;div style=&quot;font-size:16px;font-weight:bold;margin-top:4px;&quot;&gt;Honeypot (Trap)&lt;/div&gt;&lt;div style=&quot;font-size:14px;font-style:italic;margin-top:2px;&quot;&gt;[Go]&lt;/div&gt;&lt;div style=&quot;font-size:14px;margin-top:20px;&quot;&gt;Tarpitting e Fake Data.&lt;/div&gt;" mermaidId="n:Trap" mermaidBaseStyle="rounded=1;arcSize=4;whiteSpace=wrap;html=1;fillColor=#438DD5;strokeColor=#3C7FC0;strokeWidth=1;fontColor=#FFFFFF;align=center;verticalAlign=middle;fontFamily=Open Sans,sans-serif;" mermaidBaseValue="&lt;div style=&quot;font-size:12px;font-style:italic;&quot;&gt;&amp;lt;&amp;lt;container&amp;gt;&amp;gt;&lt;/div&gt;&lt;div style=&quot;font-size:16px;font-weight:bold;margin-top:4px;&quot;&gt;Honeypot (Trap)&lt;/div&gt;&lt;div style=&quot;font-size:14px;font-style:italic;margin-top:2px;&quot;&gt;[Go]&lt;/div&gt;&lt;div style=&quot;font-size:14px;margin-top:20px;&quot;&gt;Tarpitting e Fake Data.&lt;/div&gt;" id="U9amFavDQM3QP5FAxLsL-8">
+          <mxCell parent="U9amFavDQM3QP5FAxLsL-4" style="rounded=1;arcSize=4;whiteSpace=wrap;html=1;fillColor=#1ba1e2;strokeColor=#006EAF;strokeWidth=1;fontColor=#ffffff;align=center;verticalAlign=middle;fontFamily=Open Sans,sans-serif;" vertex="1">
+            <mxGeometry height="138.46" width="304.84" x="100" y="220" as="geometry" />
+          </mxCell>
+        </UserObject>
+        <mxCell id="wxgk3d28kwZp0AZexbF1-15" edge="1" parent="U9amFavDQM3QP5FAxLsL-4" source="U9amFavDQM3QP5FAxLsL-9" style="edgeStyle=orthogonalEdgeStyle;rounded=0;orthogonalLoop=1;jettySize=auto;html=1;exitX=0.5;exitY=1;exitDx=0;exitDy=0;entryX=0.5;entryY=0;entryDx=0;entryDy=0;dashed=1;dashPattern=8 8;" target="U9amFavDQM3QP5FAxLsL-10">
+          <mxGeometry relative="1" as="geometry" />
+        </mxCell>
+        <mxCell id="wxgk3d28kwZp0AZexbF1-23" connectable="0" parent="wxgk3d28kwZp0AZexbF1-15" style="edgeLabel;html=1;align=center;verticalAlign=middle;resizable=0;points=[];" value="Dati grezzi" vertex="1">
+          <mxGeometry relative="1" x="-0.0389" as="geometry">
+            <mxPoint as="offset" />
+          </mxGeometry>
+        </mxCell>
+        <UserObject label="&lt;div style=&quot;font-size:12px;font-style:italic;&quot;&gt;&amp;lt;&amp;lt;container&amp;gt;&amp;gt;&lt;/div&gt;&lt;div style=&quot;font-size:16px;font-weight:bold;margin-top:4px;&quot;&gt;Observability Pipeline&lt;/div&gt;&lt;div style=&quot;font-size:14px;font-style:italic;margin-top:2px;&quot;&gt;[Fluent Bit]&lt;/div&gt;&lt;div style=&quot;font-size:14px;margin-top:20px;&quot;&gt;Ingestion log asincrona.&lt;/div&gt;" mermaidId="n:Obs" mermaidBaseStyle="rounded=1;arcSize=4;whiteSpace=wrap;html=1;fillColor=#438DD5;strokeColor=#3C7FC0;strokeWidth=1;fontColor=#FFFFFF;align=center;verticalAlign=middle;fontFamily=Open Sans,sans-serif;" mermaidBaseValue="&lt;div style=&quot;font-size:12px;font-style:italic;&quot;&gt;&amp;lt;&amp;lt;container&amp;gt;&amp;gt;&lt;/div&gt;&lt;div style=&quot;font-size:16px;font-weight:bold;margin-top:4px;&quot;&gt;Observability Pipeline&lt;/div&gt;&lt;div style=&quot;font-size:14px;font-style:italic;margin-top:2px;&quot;&gt;[Fluent Bit]&lt;/div&gt;&lt;div style=&quot;font-size:14px;margin-top:20px;&quot;&gt;Ingestion log asincrona.&lt;/div&gt;" id="U9amFavDQM3QP5FAxLsL-9">
+          <mxCell parent="U9amFavDQM3QP5FAxLsL-4" style="rounded=1;arcSize=4;whiteSpace=wrap;html=1;fillColor=#1ba1e2;strokeColor=#006EAF;strokeWidth=1;fontColor=#ffffff;align=center;verticalAlign=middle;fontFamily=Open Sans,sans-serif;" vertex="1">
+            <mxGeometry height="138.46" width="303.84" x="984.56" y="220" as="geometry" />
+          </mxCell>
+        </UserObject>
+        <mxCell id="wxgk3d28kwZp0AZexbF1-14" edge="1" parent="U9amFavDQM3QP5FAxLsL-4" source="U9amFavDQM3QP5FAxLsL-10" style="edgeStyle=orthogonalEdgeStyle;rounded=0;orthogonalLoop=1;jettySize=auto;html=1;exitX=0.5;exitY=1;exitDx=0;exitDy=0;entryX=0.5;entryY=0;entryDx=0;entryDy=0;dashed=1;dashPattern=8 8;" target="U9amFavDQM3QP5FAxLsL-11">
+          <mxGeometry relative="1" as="geometry" />
+        </mxCell>
+        <mxCell id="wxgk3d28kwZp0AZexbF1-24" connectable="0" parent="wxgk3d28kwZp0AZexbF1-14" style="edgeLabel;html=1;align=center;verticalAlign=middle;resizable=0;points=[];" value="Dati puliti" vertex="1">
+          <mxGeometry relative="1" x="-0.1724" y="-2" as="geometry">
+            <mxPoint as="offset" />
+          </mxGeometry>
+        </mxCell>
+        <UserObject label="&lt;div style=&quot;font-size:12px;font-style:italic;&quot;&gt;&amp;lt;&amp;lt;container&amp;gt;&amp;gt;&lt;/div&gt;&lt;div style=&quot;font-size:16px;font-weight:bold;margin-top:4px;&quot;&gt;Data Filter&lt;/div&gt;&lt;div style=&quot;font-size:14px;font-style:italic;margin-top:2px;&quot;&gt;[Go/Python]&lt;/div&gt;&lt;div style=&quot;font-size:14px;margin-top:20px;&quot;&gt;Scrubbing anti-poisoning.&lt;/div&gt;" mermaidId="n:Filter" mermaidBaseStyle="rounded=1;arcSize=4;whiteSpace=wrap;html=1;fillColor=#438DD5;strokeColor=#3C7FC0;strokeWidth=1;fontColor=#FFFFFF;align=center;verticalAlign=middle;fontFamily=Open Sans,sans-serif;" mermaidBaseValue="&lt;div style=&quot;font-size:12px;font-style:italic;&quot;&gt;&amp;lt;&amp;lt;container&amp;gt;&amp;gt;&lt;/div&gt;&lt;div style=&quot;font-size:16px;font-weight:bold;margin-top:4px;&quot;&gt;Data Filter&lt;/div&gt;&lt;div style=&quot;font-size:14px;font-style:italic;margin-top:2px;&quot;&gt;[Go/Python]&lt;/div&gt;&lt;div style=&quot;font-size:14px;margin-top:20px;&quot;&gt;Scrubbing anti-poisoning.&lt;/div&gt;" id="U9amFavDQM3QP5FAxLsL-10">
+          <mxCell parent="U9amFavDQM3QP5FAxLsL-4" style="rounded=1;arcSize=4;whiteSpace=wrap;html=1;fillColor=#e51400;strokeColor=#B20000;strokeWidth=1;fontColor=#ffffff;align=center;verticalAlign=middle;fontFamily=Open Sans,sans-serif;" vertex="1">
+            <mxGeometry height="138.46" width="276.83" x="998.06" y="433.19" as="geometry" />
+          </mxCell>
+        </UserObject>
+        <UserObject label="&lt;div style=&quot;font-size:12px;font-style:italic;&quot;&gt;&amp;lt;&amp;lt;container&amp;gt;&amp;gt;&lt;/div&gt;&lt;div style=&quot;font-size:16px;font-weight:bold;margin-top:4px;&quot;&gt;Addestramento Offline&lt;/div&gt;&lt;div style=&quot;font-size:14px;font-style:italic;margin-top:2px;&quot;&gt;[Python]&lt;/div&gt;&lt;div style=&quot;font-size:14px;margin-top:20px;&quot;&gt;Riaddestramento batch.&lt;/div&gt;" mermaidId="n:MLTrain" mermaidBaseStyle="rounded=1;arcSize=4;whiteSpace=wrap;html=1;fillColor=#438DD5;strokeColor=#3C7FC0;strokeWidth=1;fontColor=#FFFFFF;align=center;verticalAlign=middle;fontFamily=Open Sans,sans-serif;" mermaidBaseValue="&lt;div style=&quot;font-size:12px;font-style:italic;&quot;&gt;&amp;lt;&amp;lt;container&amp;gt;&amp;gt;&lt;/div&gt;&lt;div style=&quot;font-size:16px;font-weight:bold;margin-top:4px;&quot;&gt;Addestramento Offline&lt;/div&gt;&lt;div style=&quot;font-size:14px;font-style:italic;margin-top:2px;&quot;&gt;[Python]&lt;/div&gt;&lt;div style=&quot;font-size:14px;margin-top:20px;&quot;&gt;Riaddestramento batch.&lt;/div&gt;" id="U9amFavDQM3QP5FAxLsL-11">
+          <mxCell parent="U9amFavDQM3QP5FAxLsL-4" style="rounded=1;arcSize=4;whiteSpace=wrap;html=1;fillColor=#1ba1e2;strokeColor=#006EAF;strokeWidth=1;fontColor=#ffffff;align=center;verticalAlign=middle;fontFamily=Open Sans,sans-serif;" vertex="1">
+            <mxGeometry height="138.46" width="273.42" x="999.7600000000001" y="691" as="geometry" />
+          </mxCell>
+        </UserObject>
+        <UserObject label="&lt;div style=&quot;font-size:12px;font-style:italic;&quot;&gt;&amp;lt;&amp;lt;container_db&amp;gt;&amp;gt;&lt;/div&gt;&lt;div style=&quot;font-size:16px;font-weight:bold;margin-top:4px;&quot;&gt;Model Registry&lt;/div&gt;&lt;div style=&quot;font-size:14px;font-style:italic;margin-top:2px;&quot;&gt;[Storage]&lt;/div&gt;&lt;div style=&quot;font-size:14px;margin-top:20px;&quot;&gt;Pesi del modello aggiornato.&lt;/div&gt;" mermaidId="n:Registry" mermaidBaseStyle="shape=cylinder3;whiteSpace=wrap;html=1;boundedLbl=1;backgroundOutline=1;size=10;fillColor=#438DD5;strokeColor=#3C7FC0;strokeWidth=1;fontColor=#FFFFFF;align=center;verticalAlign=middle;fontFamily=Open Sans,sans-serif;" mermaidBaseValue="&lt;div style=&quot;font-size:12px;font-style:italic;&quot;&gt;&amp;lt;&amp;lt;container_db&amp;gt;&amp;gt;&lt;/div&gt;&lt;div style=&quot;font-size:16px;font-weight:bold;margin-top:4px;&quot;&gt;Model Registry&lt;/div&gt;&lt;div style=&quot;font-size:14px;font-style:italic;margin-top:2px;&quot;&gt;[Storage]&lt;/div&gt;&lt;div style=&quot;font-size:14px;margin-top:20px;&quot;&gt;Pesi del modello aggiornato.&lt;/div&gt;" id="U9amFavDQM3QP5FAxLsL-12">
+          <mxCell parent="U9amFavDQM3QP5FAxLsL-4" style="shape=cylinder3;whiteSpace=wrap;html=1;boundedLbl=1;backgroundOutline=1;size=10;fillColor=#e51400;strokeColor=#B20000;strokeWidth=1;fontColor=#ffffff;align=center;verticalAlign=middle;fontFamily=Open Sans,sans-serif;" vertex="1">
+            <mxGeometry height="164.84" width="250" x="734.56" y="960" as="geometry" />
+          </mxCell>
+        </UserObject>
+        <mxCell id="wxgk3d28kwZp0AZexbF1-7" edge="1" parent="U9amFavDQM3QP5FAxLsL-4" source="U9amFavDQM3QP5FAxLsL-5" style="edgeStyle=orthogonalEdgeStyle;rounded=0;orthogonalLoop=1;jettySize=auto;html=1;exitX=0;exitY=1;exitDx=0;exitDy=0;entryX=0.5;entryY=0;entryDx=0;entryDy=0;curved=1;" target="U9amFavDQM3QP5FAxLsL-8">
+          <mxGeometry relative="1" as="geometry">
+            <Array as="points">
+              <mxPoint x="615" y="150" />
+              <mxPoint x="252" y="150" />
+            </Array>
+          </mxGeometry>
+        </mxCell>
+        <mxCell id="wxgk3d28kwZp0AZexbF1-19" connectable="0" parent="wxgk3d28kwZp0AZexbF1-7" style="edgeLabel;html=1;align=center;verticalAlign=middle;resizable=0;points=[];" value="Attacco rilevato" vertex="1">
+          <mxGeometry relative="1" x="0.4792" y="13" as="geometry">
+            <mxPoint x="1" as="offset" />
+          </mxGeometry>
+        </mxCell>
+        <mxCell id="wxgk3d28kwZp0AZexbF1-17" edge="1" parent="U9amFavDQM3QP5FAxLsL-4" source="U9amFavDQM3QP5FAxLsL-5" style="edgeStyle=orthogonalEdgeStyle;rounded=0;orthogonalLoop=1;jettySize=auto;html=1;exitX=1;exitY=1;exitDx=0;exitDy=0;curved=1;dashed=1;dashPattern=8 8;" target="U9amFavDQM3QP5FAxLsL-9">
+          <mxGeometry relative="1" as="geometry" />
+        </mxCell>
+        <mxCell id="wxgk3d28kwZp0AZexbF1-21" connectable="0" parent="wxgk3d28kwZp0AZexbF1-17" style="edgeLabel;html=1;align=center;verticalAlign=middle;resizable=0;points=[];" value="Log Asincroni" vertex="1">
+          <mxGeometry relative="1" x="0.3025" y="-3" as="geometry">
+            <mxPoint as="offset" />
+          </mxGeometry>
+        </mxCell>
+        <UserObject label="&lt;div style=&quot;font-size:12px;font-style:italic;&quot;&gt;&amp;lt;&amp;lt;container&amp;gt;&amp;gt;&lt;/div&gt;&lt;div style=&quot;font-size:16px;font-weight:bold;margin-top:4px;&quot;&gt;Reverse Proxy Custom&lt;/div&gt;&lt;div style=&quot;font-size:14px;font-style:italic;margin-top:2px;&quot;&gt;[Go]&lt;/div&gt;&lt;div style=&quot;font-size:14px;margin-top:20px;&quot;&gt;Routing e iniezione esche.&lt;/div&gt;" mermaidId="n:Proxy" mermaidBaseStyle="rounded=1;arcSize=4;whiteSpace=wrap;html=1;fillColor=#438DD5;strokeColor=#3C7FC0;strokeWidth=1;fontColor=#FFFFFF;align=center;verticalAlign=middle;fontFamily=Open Sans,sans-serif;" mermaidBaseValue="&lt;div style=&quot;font-size:12px;font-style:italic;&quot;&gt;&amp;lt;&amp;lt;container&amp;gt;&amp;gt;&lt;/div&gt;&lt;div style=&quot;font-size:16px;font-weight:bold;margin-top:4px;&quot;&gt;Reverse Proxy Custom&lt;/div&gt;&lt;div style=&quot;font-size:14px;font-style:italic;margin-top:2px;&quot;&gt;[Go]&lt;/div&gt;&lt;div style=&quot;font-size:14px;margin-top:20px;&quot;&gt;Routing e iniezione esche.&lt;/div&gt;" id="U9amFavDQM3QP5FAxLsL-5">
+          <mxCell parent="U9amFavDQM3QP5FAxLsL-4" style="rounded=1;arcSize=4;whiteSpace=wrap;html=1;fillColor=#1ba1e2;strokeColor=#006EAF;strokeWidth=1;fontColor=#ffffff;align=center;verticalAlign=middle;fontFamily=Open Sans,sans-serif;" vertex="1">
+            <mxGeometry height="105" width="369.1139240506329" x="615.4430379746835" y="40" as="geometry" />
+          </mxCell>
+        </UserObject>
+        <mxCell id="wxgk3d28kwZp0AZexbF1-9" edge="1" parent="U9amFavDQM3QP5FAxLsL-4" source="U9amFavDQM3QP5FAxLsL-5" style="edgeStyle=orthogonalEdgeStyle;rounded=0;orthogonalLoop=1;jettySize=auto;html=1;exitX=0.25;exitY=1;exitDx=0;exitDy=0;entryX=0.5;entryY=0;entryDx=0;entryDy=0;entryPerimeter=0;curved=1;" target="U9amFavDQM3QP5FAxLsL-6">
+          <mxGeometry relative="1" as="geometry" />
+        </mxCell>
+        <mxCell id="wxgk3d28kwZp0AZexbF1-20" connectable="0" parent="wxgk3d28kwZp0AZexbF1-9" style="edgeLabel;html=1;align=center;verticalAlign=middle;resizable=0;points=[];" value="Check Risk Score" vertex="1">
+          <mxGeometry relative="1" x="0.0494" y="1" as="geometry">
+            <mxPoint as="offset" />
+          </mxGeometry>
+        </mxCell>
+        <mxCell id="wxgk3d28kwZp0AZexbF1-11" edge="1" parent="U9amFavDQM3QP5FAxLsL-4" source="U9amFavDQM3QP5FAxLsL-7" style="edgeStyle=orthogonalEdgeStyle;rounded=0;orthogonalLoop=1;jettySize=auto;html=1;exitX=0.5;exitY=0;exitDx=0;exitDy=0;entryX=0.5;entryY=1;entryDx=0;entryDy=0;entryPerimeter=0;" target="U9amFavDQM3QP5FAxLsL-6">
+          <mxGeometry relative="1" as="geometry" />
+        </mxCell>
+        <mxCell id="wxgk3d28kwZp0AZexbF1-27" connectable="0" parent="wxgk3d28kwZp0AZexbF1-11" style="edgeLabel;html=1;align=center;verticalAlign=middle;resizable=0;points=[];" value="API sincrona se miss" vertex="1">
+          <mxGeometry relative="1" x="-0.3099" as="geometry">
+            <mxPoint as="offset" />
+          </mxGeometry>
+        </mxCell>
+        <mxCell id="wxgk3d28kwZp0AZexbF1-12" edge="1" parent="U9amFavDQM3QP5FAxLsL-4" source="U9amFavDQM3QP5FAxLsL-7" style="edgeStyle=orthogonalEdgeStyle;rounded=0;orthogonalLoop=1;jettySize=auto;html=1;exitX=0.5;exitY=1;exitDx=0;exitDy=0;entryX=0;entryY=0;entryDx=0;entryDy=10;entryPerimeter=0;dashed=1;dashPattern=8 8;" target="U9amFavDQM3QP5FAxLsL-12">
+          <mxGeometry relative="1" as="geometry" />
+        </mxCell>
+        <mxCell id="wxgk3d28kwZp0AZexbF1-26" connectable="0" parent="wxgk3d28kwZp0AZexbF1-12" style="edgeLabel;html=1;align=center;verticalAlign=middle;resizable=0;points=[];" value="Legge Modello" vertex="1">
+          <mxGeometry relative="1" x="0.1904" y="-2" as="geometry">
+            <mxPoint as="offset" />
+          </mxGeometry>
+        </mxCell>
+        <mxCell id="wxgk3d28kwZp0AZexbF1-13" edge="1" parent="U9amFavDQM3QP5FAxLsL-4" source="U9amFavDQM3QP5FAxLsL-11" style="edgeStyle=orthogonalEdgeStyle;rounded=0;orthogonalLoop=1;jettySize=auto;html=1;exitX=0.5;exitY=1;exitDx=0;exitDy=0;entryX=1;entryY=0;entryDx=0;entryDy=10;entryPerimeter=0;dashed=1;dashPattern=8 8;" target="U9amFavDQM3QP5FAxLsL-12">
+          <mxGeometry relative="1" as="geometry" />
+        </mxCell>
+        <mxCell id="wxgk3d28kwZp0AZexbF1-25" connectable="0" parent="wxgk3d28kwZp0AZexbF1-13" style="edgeLabel;html=1;align=center;verticalAlign=middle;resizable=0;points=[];" value="Push nuovo modello" vertex="1">
+          <mxGeometry relative="1" x="-0.2927" y="-1" as="geometry">
+            <mxPoint as="offset" />
+          </mxGeometry>
+        </mxCell>
+        <UserObject label="&lt;div style=&quot;font-size:12px;font-style:italic;&quot;&gt;&amp;lt;&amp;lt;external_system&amp;gt;&amp;gt;&lt;/div&gt;&lt;div style=&quot;font-size:16px;font-weight:bold;margin-top:4px;&quot;&gt;Infrastruttura Reale&lt;/div&gt;&lt;div style=&quot;font-size:14px;margin-top:20px;&quot;&gt;Backend di produzione autentici.&lt;/div&gt;" mermaidId="n:RealInfra" mermaidBaseStyle="rounded=1;arcSize=4;whiteSpace=wrap;html=1;fillColor=#999999;strokeColor=#8A8A8A;strokeWidth=1;fontColor=#FFFFFF;align=center;verticalAlign=middle;fontFamily=Open Sans,sans-serif;" mermaidBaseValue="&lt;div style=&quot;font-size:12px;font-style:italic;&quot;&gt;&amp;lt;&amp;lt;external_system&amp;gt;&amp;gt;&lt;/div&gt;&lt;div style=&quot;font-size:16px;font-weight:bold;margin-top:4px;&quot;&gt;Infrastruttura Reale&lt;/div&gt;&lt;div style=&quot;font-size:14px;margin-top:20px;&quot;&gt;Backend di produzione autentici.&lt;/div&gt;" id="U9amFavDQM3QP5FAxLsL-13">
+          <mxCell parent="U9amFavDQM3QP5FAxLsL-1" style="rounded=1;arcSize=4;whiteSpace=wrap;html=1;fillColor=#647687;strokeColor=#314354;strokeWidth=1;fontColor=#ffffff;align=center;verticalAlign=middle;fontFamily=Open Sans,sans-serif;" vertex="1">
+            <mxGeometry height="86" width="233" x="1780" y="420" as="geometry" />
+          </mxCell>
+        </UserObject>
+        <UserObject label="Richiesta HTTP/S" mermaidId="e:WAF-&gt;Proxy#0" mermaidBaseStyle="endArrow=block;html=1;strokeColor=#444444;strokeWidth=1;fontSize=11;fontColor=#444444;labelBackgroundColor=none;exitX=0.5565427814811431;exitY=1;entryX=0.6101788802421098;entryY=0;align=center;verticalAlign=middle;" mermaidBaseValue="Richiesta HTTP/S" id="U9amFavDQM3QP5FAxLsL-14">
+          <mxCell edge="1" parent="U9amFavDQM3QP5FAxLsL-1" source="U9amFavDQM3QP5FAxLsL-3" style="endArrow=block;html=1;strokeColor=#444444;strokeWidth=1;fontSize=11;fontColor=#444444;labelBackgroundColor=none;exitX=0.5;exitY=1;entryX=0.5;entryY=0;align=center;verticalAlign=middle;rounded=0;entryDx=0;entryDy=0;exitDx=0;exitDy=0;" target="U9amFavDQM3QP5FAxLsL-5">
+            <mxGeometry relative="1" x="-0.3413" y="3" as="geometry">
+              <mxPoint as="offset" />
+            </mxGeometry>
+          </mxCell>
+        </UserObject>
+        <mxCell id="wxgk3d28kwZp0AZexbF1-18" edge="1" parent="U9amFavDQM3QP5FAxLsL-1" source="U9amFavDQM3QP5FAxLsL-5" style="edgeStyle=orthogonalEdgeStyle;rounded=0;orthogonalLoop=1;jettySize=auto;html=1;exitX=1;exitY=0.5;exitDx=0;exitDy=0;entryX=0;entryY=0.5;entryDx=0;entryDy=0;curved=1;" target="U9amFavDQM3QP5FAxLsL-13">
+          <mxGeometry relative="1" as="geometry" />
+        </mxCell>
+        <mxCell id="wxgk3d28kwZp0AZexbF1-22" connectable="0" parent="wxgk3d28kwZp0AZexbF1-18" style="edgeLabel;html=1;align=center;verticalAlign=middle;resizable=0;points=[];" value="Flusso legit" vertex="1">
+          <mxGeometry relative="1" x="0.1244" y="7" as="geometry">
+            <mxPoint as="offset" />
+          </mxGeometry>
+        </mxCell>
+      </root>
+    </mxGraphModel>
+  </diagram>
+  <diagram id="riKfImF_GaNfGhFkWDLT" name="L3">
+    <mxGraphModel dx="2571" dy="1413" grid="1" gridSize="10" guides="1" tooltips="1" connect="1" arrows="1" fold="1" page="1" pageScale="1" pageWidth="827" pageHeight="1169" math="0" shadow="0">
+      <root>
+        <mxCell id="0" />
+        <mxCell id="1" parent="0" />
+        <UserObject label="" mermaidData="{&#xa;  &quot;data&quot;: &quot;C4Component\n    title Diagramma dei Componenti (C4 Livello 3) - Interno Reverse Proxy Go\n\n    System_Ext(WAF, \&quot;Google Cloud Armor (WAF)\&quot;, \&quot;Filtro perimetrale edge.\&quot;)\n\n    Container_Boundary(ProxyBoundary, \&quot;Reverse Proxy Custom [Container: Go]\&quot;) {\n        Component(Listener, \&quot;HTTP Listener\&quot;, \&quot;pkg/listener\&quot;, \&quot;Punto d&#39;ingresso delle connessioni TCP/HTTP.\&quot;)\n        Component(Interceptor, \&quot;Security Interceptor\&quot;, \&quot;pkg/interceptor\&quot;, \&quot;Il core orchestratore: coordina i controlli e decide il routing.\&quot;)\n        \n        %% Fila interna orizzontale perfettamente allineata alle uscite inferiori\n        Component(AIClient, \&quot;AI Inference Client\&quot;, \&quot;pkg/aiclient\&quot;, \&quot;Gestisce le chiamate di rete verso l&#39;IA in Python.\&quot;)\n        Component(Injector, \&quot;Honey-URL Injector\&quot;, \&quot;pkg/injector\&quot;, \&quot;Modifica lo stream del DOM iniettando esche invisibili.\&quot;)\n        Component(Router, \&quot;Legit Traffic Router\&quot;, \&quot;pkg/router\&quot;, \&quot;Inoltra il traffico pulito con overhead &lt; 2ms.\&quot;)\n        Component(Telemetry, \&quot;Telemetry Agent\&quot;, \&quot;pkg/telemetry\&quot;, \&quot;Spedisce asincronamente i log JSON a Fluent Bit.\&quot;)\n    }\n\n    %% Sistemi Esterni posizionati esattamente sotto i relativi componenti client\n    System_Ext(AIEngine, \&quot;Servizio Inferenza IA\&quot;, \&quot;Python / FastAPI Backend\&quot;)\n    System_Ext(Trap, \&quot;Honeypot Applicativo\&quot;, \&quot;Go Trap Env\&quot;)\n    System_Ext(RealInfra, \&quot;Infrastruttura Reale\&quot;, \&quot;Backend di Produzione\&quot;)\n    System_Ext(Obs, \&quot;Observability Pipeline\&quot;, \&quot;Fluent Bit Stack\&quot;)\n\n    %% Flusso d&#39;ingresso primario\n    Rel(WAF, Listener, \&quot;Traffico HTTP\&quot;)\n    Rel(Listener, Interceptor, \&quot;Passa payload\&quot;)\n\n    %% Collegamenti interni dall&#39;orchestratore alla fila orizzontale\n    Rel(Interceptor, AIClient, \&quot;Richiede analisi anomalia\&quot;)\n    Rel(Interceptor, Injector, \&quot;Richiede iniezione esche\&quot;)\n    Rel(Interceptor, Router, \&quot;Traffico Sano\&quot;)\n    Rel(Interceptor, Telemetry, \&quot;Dati contesto asincroni\&quot;)\n\n    %% Collegamenti di uscita (Linee verticali e parallele pulite senza incroci)\n    Rel(AIClient, AIEngine, \&quot;API Call: Risk Score\&quot;, \&quot;HTTP/gRPC\&quot;)\n    Rel(Injector, Trap, \&quot;Valutazione: Attacco\&quot;, \&quot;HTTP Routing\&quot;)\n    Rel(Router, RealInfra, \&quot;Inoltro Trasparente\&quot;, \&quot;HTTP/S\&quot;)\n    Rel(Telemetry, Obs, \&quot;Esporta JSON\&quot;, \&quot;Fluent Bit Ingestion\&quot;)&quot;,&#xa;  &quot;config&quot;: null&#xa;}" id="APXowBNtJEgHI_DdwU7E-54">
+          <mxCell connectable="0" parent="1" style="group;transparentBounds=1;editIcon=1;lockedGroup=0;groupPadding=20;" vertex="1">
+            <mxGeometry height="2186" width="1710" as="geometry" />
+          </mxCell>
+        </UserObject>
+        <mxCell id="APXowBNtJEgHI_DdwU7E-55" parent="APXowBNtJEgHI_DdwU7E-54" style="text;html=1;strokeColor=none;fillColor=none;fontSize=16;fontColor=light-dark(#333333,#cccccc);align=left;verticalAlign=top;spacingLeft=154.5;" value="Diagramma dei Componenti (C4 Livello 3) - Interno Reverse Proxy Go" vertex="1">
+          <mxGeometry height="24" width="809" x="445.5" y="470" as="geometry" />
+        </mxCell>
+        <UserObject label="&lt;div style=&quot;font-size:12px;font-style:italic;&quot;&gt;&amp;lt;&amp;lt;external_system&amp;gt;&amp;gt;&lt;/div&gt;&lt;div style=&quot;font-size:16px;font-weight:bold;margin-top:4px;&quot;&gt;Google Cloud Armor (WAF)&lt;/div&gt;&lt;div style=&quot;font-size:14px;margin-top:20px;&quot;&gt;Filtro perimetrale edge.&lt;/div&gt;" mermaidId="n:WAF" mermaidBaseStyle="rounded=1;arcSize=4;whiteSpace=wrap;html=1;fillColor=#999999;strokeColor=#8A8A8A;strokeWidth=1;fontColor=#FFFFFF;align=center;verticalAlign=middle;fontFamily=Open Sans,sans-serif;" mermaidBaseValue="&lt;div style=&quot;font-size:12px;font-style:italic;&quot;&gt;&amp;lt;&amp;lt;external_system&amp;gt;&amp;gt;&lt;/div&gt;&lt;div style=&quot;font-size:16px;font-weight:bold;margin-top:4px;&quot;&gt;Google Cloud Armor (WAF)&lt;/div&gt;&lt;div style=&quot;font-size:14px;margin-top:20px;&quot;&gt;Filtro perimetrale edge.&lt;/div&gt;" id="APXowBNtJEgHI_DdwU7E-56">
+          <mxCell parent="APXowBNtJEgHI_DdwU7E-54" style="rounded=1;arcSize=4;whiteSpace=wrap;html=1;fillColor=#647687;strokeColor=#314354;strokeWidth=1;fontColor=#ffffff;align=center;verticalAlign=middle;fontFamily=Open Sans,sans-serif;" vertex="1">
+            <mxGeometry height="86" width="233" x="733.5" y="585" as="geometry" />
+          </mxCell>
+        </UserObject>
+        <UserObject label="&lt;div style=&quot;font-size:16px;font-weight:bold;&quot;&gt;Reverse Proxy Custom [Container: Go]&lt;/div&gt;" mermaidId="n:ProxyBoundary" mermaidBaseStyle="rounded=1;absoluteArcSize=1;arcSize=5;whiteSpace=wrap;html=1;fillColor=none;strokeColor=#444444;strokeWidth=1;dashed=1;dashPattern=5 5;verticalAlign=top;align=center;spacingTop=2;fontSize=16;fontStyle=1;fontColor=#444444;fontFamily=Open Sans,sans-serif;" mermaidBaseValue="&lt;div style=&quot;font-size:16px;font-weight:bold;&quot;&gt;Reverse Proxy Custom [Container: Go]&lt;/div&gt;&lt;div style=&quot;font-size:14px;font-weight:normal;margin-top:4px;&quot;&gt;[CONTAINER]&lt;/div&gt;" id="APXowBNtJEgHI_DdwU7E-57">
+          <mxCell parent="APXowBNtJEgHI_DdwU7E-54" style="rounded=1;absoluteArcSize=1;arcSize=5;whiteSpace=wrap;html=1;fillColor=none;strokeColor=#444444;strokeWidth=1;dashed=1;dashPattern=12 12;verticalAlign=top;align=center;spacingTop=2;fontSize=16;fontStyle=1;fontColor=#444444;fontFamily=Open Sans,sans-serif;fixDash=1;" vertex="1">
+            <mxGeometry height="910" width="1640" x="80" y="750" as="geometry" />
+          </mxCell>
+        </UserObject>
+        <UserObject label="&lt;div style=&quot;font-size:12px;font-style:italic;&quot;&gt;&amp;lt;&amp;lt;component&amp;gt;&amp;gt;&lt;/div&gt;&lt;div style=&quot;font-size:16px;font-weight:bold;margin-top:4px;&quot;&gt;HTTP Listener&lt;/div&gt;&lt;div style=&quot;font-size:14px;font-style:italic;margin-top:2px;&quot;&gt;[pkg/listener]&lt;/div&gt;&lt;div style=&quot;font-size:14px;margin-top:20px;&quot;&gt;Punto d&amp;#39;ingresso delle connessioni TCP/HTTP.&lt;/div&gt;" mermaidId="n:Listener" mermaidBaseStyle="rounded=1;arcSize=4;whiteSpace=wrap;html=1;fillColor=#85BBF0;strokeColor=#78A8D8;strokeWidth=1;fontColor=#FFFFFF;align=center;verticalAlign=middle;fontFamily=Open Sans,sans-serif;" mermaidBaseValue="&lt;div style=&quot;font-size:12px;font-style:italic;&quot;&gt;&amp;lt;&amp;lt;component&amp;gt;&amp;gt;&lt;/div&gt;&lt;div style=&quot;font-size:16px;font-weight:bold;margin-top:4px;&quot;&gt;HTTP Listener&lt;/div&gt;&lt;div style=&quot;font-size:14px;font-style:italic;margin-top:2px;&quot;&gt;[pkg/listener]&lt;/div&gt;&lt;div style=&quot;font-size:14px;margin-top:20px;&quot;&gt;Punto d&amp;#39;ingresso delle connessioni TCP/HTTP.&lt;/div&gt;" id="APXowBNtJEgHI_DdwU7E-58">
+          <mxCell parent="APXowBNtJEgHI_DdwU7E-57" style="rounded=1;arcSize=4;whiteSpace=wrap;html=1;fillColor=#1ba1e2;strokeColor=#006EAF;strokeWidth=1;fontColor=#ffffff;align=center;verticalAlign=middle;fontFamily=Open Sans,sans-serif;" vertex="1">
+            <mxGeometry height="97.44" width="360.47" x="589.28" y="62.56" as="geometry" />
+          </mxCell>
+        </UserObject>
+        <mxCell id="APXowBNtJEgHI_DdwU7E-82" edge="1" parent="APXowBNtJEgHI_DdwU7E-57" source="APXowBNtJEgHI_DdwU7E-59" style="edgeStyle=orthogonalEdgeStyle;rounded=0;orthogonalLoop=1;jettySize=auto;html=1;exitX=0.25;exitY=1;exitDx=0;exitDy=0;entryX=0.5;entryY=0;entryDx=0;entryDy=0;curved=1;" target="APXowBNtJEgHI_DdwU7E-60">
+          <mxGeometry relative="1" as="geometry" />
+        </mxCell>
+        <mxCell id="APXowBNtJEgHI_DdwU7E-84" connectable="0" parent="APXowBNtJEgHI_DdwU7E-82" style="edgeLabel;html=1;align=center;verticalAlign=middle;resizable=0;points=[];" value="Richiede analisi anomalia" vertex="1">
+          <mxGeometry relative="1" x="-0.1866" y="-5" as="geometry">
+            <mxPoint as="offset" />
+          </mxGeometry>
+        </mxCell>
+        <mxCell id="APXowBNtJEgHI_DdwU7E-85" edge="1" parent="APXowBNtJEgHI_DdwU7E-57" source="APXowBNtJEgHI_DdwU7E-59" style="edgeStyle=orthogonalEdgeStyle;rounded=0;orthogonalLoop=1;jettySize=auto;html=1;exitX=0.75;exitY=1;exitDx=0;exitDy=0;entryX=0.5;entryY=0;entryDx=0;entryDy=0;curved=1;shape=filledEdge;dashed=1;dashPattern=8 8;" target="APXowBNtJEgHI_DdwU7E-63">
+          <mxGeometry relative="1" as="geometry" />
+        </mxCell>
+        <mxCell id="APXowBNtJEgHI_DdwU7E-89" connectable="0" parent="APXowBNtJEgHI_DdwU7E-85" style="edgeLabel;html=1;align=center;verticalAlign=middle;resizable=0;points=[];" value="Dati contesto asincroni" vertex="1">
+          <mxGeometry relative="1" x="0.0715" y="-4" as="geometry">
+            <mxPoint as="offset" />
+          </mxGeometry>
+        </mxCell>
+        <mxCell id="APXowBNtJEgHI_DdwU7E-87" edge="1" parent="APXowBNtJEgHI_DdwU7E-57" source="APXowBNtJEgHI_DdwU7E-59" style="edgeStyle=orthogonalEdgeStyle;rounded=0;orthogonalLoop=1;jettySize=auto;html=1;exitX=0;exitY=1;exitDx=0;exitDy=0;entryX=0.5;entryY=0;entryDx=0;entryDy=0;curved=1;" target="APXowBNtJEgHI_DdwU7E-61">
+          <mxGeometry relative="1" as="geometry" />
+        </mxCell>
+        <mxCell id="APXowBNtJEgHI_DdwU7E-88" connectable="0" parent="APXowBNtJEgHI_DdwU7E-87" style="edgeLabel;html=1;align=center;verticalAlign=middle;resizable=0;points=[];" value="Richiede iniezione esche" vertex="1">
+          <mxGeometry relative="1" x="-0.149" y="1" as="geometry">
+            <mxPoint as="offset" />
+          </mxGeometry>
+        </mxCell>
+        <UserObject label="&lt;div style=&quot;font-size:12px;font-style:italic;&quot;&gt;&amp;lt;&amp;lt;component&amp;gt;&amp;gt;&lt;/div&gt;&lt;div style=&quot;font-size:16px;font-weight:bold;margin-top:4px;&quot;&gt;Security Interceptor&lt;/div&gt;&lt;div style=&quot;font-size:14px;font-style:italic;margin-top:2px;&quot;&gt;[pkg/interceptor]&lt;/div&gt;&lt;div style=&quot;font-size:14px;margin-top:20px;&quot;&gt;Il core orchestratore: coordina i controlli e decide il routing.&lt;/div&gt;" mermaidId="n:Interceptor" mermaidBaseStyle="rounded=1;arcSize=4;whiteSpace=wrap;html=1;fillColor=#85BBF0;strokeColor=#78A8D8;strokeWidth=1;fontColor=#FFFFFF;align=center;verticalAlign=middle;fontFamily=Open Sans,sans-serif;" mermaidBaseValue="&lt;div style=&quot;font-size:12px;font-style:italic;&quot;&gt;&amp;lt;&amp;lt;component&amp;gt;&amp;gt;&lt;/div&gt;&lt;div style=&quot;font-size:16px;font-weight:bold;margin-top:4px;&quot;&gt;Security Interceptor&lt;/div&gt;&lt;div style=&quot;font-size:14px;font-style:italic;margin-top:2px;&quot;&gt;[pkg/interceptor]&lt;/div&gt;&lt;div style=&quot;font-size:14px;margin-top:20px;&quot;&gt;Il core orchestratore: coordina i controlli e decide il routing.&lt;/div&gt;" id="APXowBNtJEgHI_DdwU7E-59">
+          <mxCell parent="APXowBNtJEgHI_DdwU7E-57" style="rounded=1;arcSize=4;whiteSpace=wrap;html=1;fillColor=#1ba1e2;strokeColor=#006EAF;strokeWidth=1;fontColor=#ffffff;align=center;verticalAlign=middle;fontFamily=Open Sans,sans-serif;" vertex="1">
+            <mxGeometry height="108.14" width="419.04" x="560" y="280" as="geometry" />
+          </mxCell>
+        </UserObject>
+        <UserObject label="&lt;div style=&quot;font-size:12px;font-style:italic;&quot;&gt;&amp;lt;&amp;lt;component&amp;gt;&amp;gt;&lt;/div&gt;&lt;div style=&quot;font-size:16px;font-weight:bold;margin-top:4px;&quot;&gt;Honey-URL Injector&lt;/div&gt;&lt;div style=&quot;font-size:14px;font-style:italic;margin-top:2px;&quot;&gt;[pkg/injector]&lt;/div&gt;&lt;div style=&quot;font-size:14px;margin-top:20px;&quot;&gt;Modifica lo stream del DOM iniettando esche invisibili.&lt;/div&gt;" mermaidId="n:Injector" mermaidBaseStyle="rounded=1;arcSize=4;whiteSpace=wrap;html=1;fillColor=#85BBF0;strokeColor=#78A8D8;strokeWidth=1;fontColor=#FFFFFF;align=center;verticalAlign=middle;fontFamily=Open Sans,sans-serif;" mermaidBaseValue="&lt;div style=&quot;font-size:12px;font-style:italic;&quot;&gt;&amp;lt;&amp;lt;component&amp;gt;&amp;gt;&lt;/div&gt;&lt;div style=&quot;font-size:16px;font-weight:bold;margin-top:4px;&quot;&gt;Honey-URL Injector&lt;/div&gt;&lt;div style=&quot;font-size:14px;font-style:italic;margin-top:2px;&quot;&gt;[pkg/injector]&lt;/div&gt;&lt;div style=&quot;font-size:14px;margin-top:20px;&quot;&gt;Modifica lo stream del DOM iniettando esche invisibili.&lt;/div&gt;" id="APXowBNtJEgHI_DdwU7E-61">
+          <mxCell parent="APXowBNtJEgHI_DdwU7E-57" style="rounded=1;arcSize=4;whiteSpace=wrap;html=1;fillColor=#1ba1e2;strokeColor=#006EAF;strokeWidth=1;fontColor=#ffffff;align=center;verticalAlign=middle;fontFamily=Open Sans,sans-serif;" vertex="1">
+            <mxGeometry height="117.42" width="345.81" x="20" y="590" as="geometry" />
+          </mxCell>
+        </UserObject>
+        <UserObject label="&lt;div style=&quot;font-size:12px;font-style:italic;&quot;&gt;&amp;lt;&amp;lt;component&amp;gt;&amp;gt;&lt;/div&gt;&lt;div style=&quot;font-size:16px;font-weight:bold;margin-top:4px;&quot;&gt;Legit Traffic Router&lt;/div&gt;&lt;div style=&quot;font-size:14px;font-style:italic;margin-top:2px;&quot;&gt;[pkg/router]&lt;/div&gt;&lt;div style=&quot;font-size:14px;margin-top:20px;&quot;&gt;Inoltra il traffico pulito con overhead &amp;lt; 2ms.&lt;/div&gt;" mermaidId="n:Router" mermaidBaseStyle="rounded=1;arcSize=4;whiteSpace=wrap;html=1;fillColor=#85BBF0;strokeColor=#78A8D8;strokeWidth=1;fontColor=#FFFFFF;align=center;verticalAlign=middle;fontFamily=Open Sans,sans-serif;" mermaidBaseValue="&lt;div style=&quot;font-size:12px;font-style:italic;&quot;&gt;&amp;lt;&amp;lt;component&amp;gt;&amp;gt;&lt;/div&gt;&lt;div style=&quot;font-size:16px;font-weight:bold;margin-top:4px;&quot;&gt;Legit Traffic Router&lt;/div&gt;&lt;div style=&quot;font-size:14px;font-style:italic;margin-top:2px;&quot;&gt;[pkg/router]&lt;/div&gt;&lt;div style=&quot;font-size:14px;margin-top:20px;&quot;&gt;Inoltra il traffico pulito con overhead &amp;lt; 2ms.&lt;/div&gt;" id="APXowBNtJEgHI_DdwU7E-62">
+          <mxCell parent="APXowBNtJEgHI_DdwU7E-57" style="rounded=1;arcSize=4;whiteSpace=wrap;html=1;fillColor=#1ba1e2;strokeColor=#006EAF;strokeWidth=1;fontColor=#ffffff;align=center;verticalAlign=middle;fontFamily=Open Sans,sans-serif;" vertex="1">
+            <mxGeometry height="120" width="330" x="1180" y="590" as="geometry" />
+          </mxCell>
+        </UserObject>
+        <UserObject label="Passa payload" mermaidId="e:Listener-&gt;Interceptor#1" mermaidBaseStyle="endArrow=block;html=1;strokeColor=#444444;strokeWidth=1;curved=1;fontSize=11;fontColor=#444444;labelBackgroundColor=none;exitX=0.6293241587331512;exitY=1;entryX=0.6356850117096018;entryY=0;align=center;verticalAlign=middle;" mermaidBaseValue="Passa payload" id="APXowBNtJEgHI_DdwU7E-69">
+          <mxCell edge="1" parent="APXowBNtJEgHI_DdwU7E-57" source="APXowBNtJEgHI_DdwU7E-58" style="endArrow=block;html=1;strokeColor=#444444;strokeWidth=1;curved=1;fontSize=11;fontColor=#444444;labelBackgroundColor=none;exitX=0.5;exitY=1;entryX=0.5;entryY=0;align=center;verticalAlign=middle;rounded=0;exitDx=0;exitDy=0;entryDx=0;entryDy=0;" target="APXowBNtJEgHI_DdwU7E-59">
+            <mxGeometry relative="1" as="geometry">
+              <Array as="points" />
+            </mxGeometry>
+          </mxCell>
+        </UserObject>
+        <UserObject label="&lt;div style=&quot;font-size:12px;font-style:italic;&quot;&gt;&amp;lt;&amp;lt;component&amp;gt;&amp;gt;&lt;/div&gt;&lt;div style=&quot;font-size:16px;font-weight:bold;margin-top:4px;&quot;&gt;Telemetry Agent&lt;/div&gt;&lt;div style=&quot;font-size:14px;font-style:italic;margin-top:2px;&quot;&gt;[pkg/telemetry]&lt;/div&gt;&lt;div style=&quot;font-size:14px;margin-top:20px;&quot;&gt;Spedisce asincronamente i log JSON a Fluent Bit.&lt;/div&gt;" mermaidId="n:Telemetry" mermaidBaseStyle="rounded=1;arcSize=4;whiteSpace=wrap;html=1;fillColor=#85BBF0;strokeColor=#78A8D8;strokeWidth=1;fontColor=#FFFFFF;align=center;verticalAlign=middle;fontFamily=Open Sans,sans-serif;" mermaidBaseValue="&lt;div style=&quot;font-size:12px;font-style:italic;&quot;&gt;&amp;lt;&amp;lt;component&amp;gt;&amp;gt;&lt;/div&gt;&lt;div style=&quot;font-size:16px;font-weight:bold;margin-top:4px;&quot;&gt;Telemetry Agent&lt;/div&gt;&lt;div style=&quot;font-size:14px;font-style:italic;margin-top:2px;&quot;&gt;[pkg/telemetry]&lt;/div&gt;&lt;div style=&quot;font-size:14px;margin-top:20px;&quot;&gt;Spedisce asincronamente i log JSON a Fluent Bit.&lt;/div&gt;" id="APXowBNtJEgHI_DdwU7E-63">
+          <mxCell parent="APXowBNtJEgHI_DdwU7E-57" style="rounded=1;arcSize=4;whiteSpace=wrap;html=1;fillColor=#1ba1e2;strokeColor=#006EAF;strokeWidth=1;fontColor=#ffffff;align=center;verticalAlign=middle;fontFamily=Open Sans,sans-serif;" vertex="1">
+            <mxGeometry height="117.42" width="333" x="797" y="591.29" as="geometry" />
+          </mxCell>
+        </UserObject>
+        <mxCell id="APXowBNtJEgHI_DdwU7E-91" edge="1" parent="APXowBNtJEgHI_DdwU7E-57" source="APXowBNtJEgHI_DdwU7E-60" style="edgeStyle=orthogonalEdgeStyle;rounded=0;orthogonalLoop=1;jettySize=auto;html=1;exitX=0.5;exitY=0;exitDx=0;exitDy=0;entryX=0.25;entryY=1;entryDx=0;entryDy=0;curved=1;" target="APXowBNtJEgHI_DdwU7E-59">
+          <mxGeometry relative="1" as="geometry" />
+        </mxCell>
+        <UserObject label="&lt;div style=&quot;font-size:12px;font-style:italic;&quot;&gt;&amp;lt;&amp;lt;component&amp;gt;&amp;gt;&lt;/div&gt;&lt;div style=&quot;font-size:16px;font-weight:bold;margin-top:4px;&quot;&gt;AI Inference Client&lt;/div&gt;&lt;div style=&quot;font-size:14px;font-style:italic;margin-top:2px;&quot;&gt;[pkg/aiclient]&lt;/div&gt;&lt;div style=&quot;font-size:14px;margin-top:20px;&quot;&gt;Gestisce le chiamate di rete verso l&amp;#39;IA in Python.&lt;/div&gt;" mermaidId="n:AIClient" mermaidBaseStyle="rounded=1;arcSize=4;whiteSpace=wrap;html=1;fillColor=#85BBF0;strokeColor=#78A8D8;strokeWidth=1;fontColor=#FFFFFF;align=center;verticalAlign=middle;fontFamily=Open Sans,sans-serif;" mermaidBaseValue="&lt;div style=&quot;font-size:12px;font-style:italic;&quot;&gt;&amp;lt;&amp;lt;component&amp;gt;&amp;gt;&lt;/div&gt;&lt;div style=&quot;font-size:16px;font-weight:bold;margin-top:4px;&quot;&gt;AI Inference Client&lt;/div&gt;&lt;div style=&quot;font-size:14px;font-style:italic;margin-top:2px;&quot;&gt;[pkg/aiclient]&lt;/div&gt;&lt;div style=&quot;font-size:14px;margin-top:20px;&quot;&gt;Gestisce le chiamate di rete verso l&amp;#39;IA in Python.&lt;/div&gt;" id="APXowBNtJEgHI_DdwU7E-60">
+          <mxCell parent="APXowBNtJEgHI_DdwU7E-57" style="rounded=1;arcSize=4;whiteSpace=wrap;html=1;fillColor=#1ba1e2;strokeColor=#006EAF;strokeWidth=1;fontColor=#ffffff;align=center;verticalAlign=middle;fontFamily=Open Sans,sans-serif;" vertex="1">
+            <mxGeometry height="120" width="350" x="410" y="588.71" as="geometry" />
+          </mxCell>
+        </UserObject>
+        <mxCell id="APXowBNtJEgHI_DdwU7E-86" edge="1" parent="APXowBNtJEgHI_DdwU7E-57" source="APXowBNtJEgHI_DdwU7E-59" style="edgeStyle=orthogonalEdgeStyle;rounded=0;orthogonalLoop=1;jettySize=auto;html=1;exitX=1;exitY=1;exitDx=0;exitDy=0;entryX=0.523;entryY=0.034;entryDx=0;entryDy=0;entryPerimeter=0;curved=1;" target="APXowBNtJEgHI_DdwU7E-62">
+          <mxGeometry relative="1" as="geometry" />
+        </mxCell>
+        <mxCell id="APXowBNtJEgHI_DdwU7E-90" connectable="0" parent="APXowBNtJEgHI_DdwU7E-86" style="edgeLabel;html=1;align=center;verticalAlign=middle;resizable=0;points=[];" value="Traffico sano" vertex="1">
+          <mxGeometry relative="1" x="-0.0531" y="-1" as="geometry">
+            <mxPoint as="offset" />
+          </mxGeometry>
+        </mxCell>
+        <UserObject label="Traffico HTTP" mermaidId="e:WAF-&gt;Listener#0" mermaidBaseStyle="endArrow=block;html=1;strokeColor=#444444;strokeWidth=1;fontSize=11;fontColor=#444444;labelBackgroundColor=none;exitX=0.5393552457370334;exitY=1;entryX=0.5314685044839242;entryY=0;align=center;verticalAlign=middle;" mermaidBaseValue="Traffico HTTP" id="APXowBNtJEgHI_DdwU7E-68">
+          <mxCell edge="1" parent="APXowBNtJEgHI_DdwU7E-54" source="APXowBNtJEgHI_DdwU7E-56" style="endArrow=block;html=1;strokeColor=#444444;strokeWidth=1;fontSize=11;fontColor=#444444;labelBackgroundColor=none;exitX=0.5;exitY=1;align=center;verticalAlign=middle;rounded=0;exitDx=0;exitDy=0;entryX=0.5;entryY=0;entryDx=0;entryDy=0;" target="APXowBNtJEgHI_DdwU7E-58">
+            <mxGeometry relative="1" as="geometry">
+              <mxPoint x="800" y="810" as="targetPoint" />
+            </mxGeometry>
+          </mxCell>
+        </UserObject>
+        <UserObject label="&lt;div style=&quot;font-size:12px;font-style:italic;&quot;&gt;&amp;lt;&amp;lt;external_system&amp;gt;&amp;gt;&lt;/div&gt;&lt;div style=&quot;font-size:16px;font-weight:bold;margin-top:4px;&quot;&gt;Honeypot Applicativo&lt;/div&gt;&lt;div style=&quot;font-size:14px;margin-top:20px;&quot;&gt;Go Trap Env&lt;/div&gt;" mermaidId="n:Trap" mermaidBaseStyle="rounded=1;arcSize=4;whiteSpace=wrap;html=1;fillColor=#999999;strokeColor=#8A8A8A;strokeWidth=1;fontColor=#FFFFFF;align=center;verticalAlign=middle;fontFamily=Open Sans,sans-serif;" mermaidBaseValue="&lt;div style=&quot;font-size:12px;font-style:italic;&quot;&gt;&amp;lt;&amp;lt;external_system&amp;gt;&amp;gt;&lt;/div&gt;&lt;div style=&quot;font-size:16px;font-weight:bold;margin-top:4px;&quot;&gt;Honeypot Applicativo&lt;/div&gt;&lt;div style=&quot;font-size:14px;margin-top:20px;&quot;&gt;Go Trap Env&lt;/div&gt;" id="APXowBNtJEgHI_DdwU7E-65">
+          <mxCell parent="APXowBNtJEgHI_DdwU7E-54" style="rounded=1;arcSize=4;whiteSpace=wrap;html=1;fillColor=#647687;strokeColor=#314354;strokeWidth=1;fontColor=#ffffff;align=center;verticalAlign=middle;fontFamily=Open Sans,sans-serif;" vertex="1">
+            <mxGeometry height="86" width="216" x="880" y="1710" as="geometry" />
+          </mxCell>
+        </UserObject>
+        <UserObject label="&lt;div style=&quot;font-size:12px;font-style:italic;&quot;&gt;&amp;lt;&amp;lt;external_system&amp;gt;&amp;gt;&lt;/div&gt;&lt;div style=&quot;font-size:16px;font-weight:bold;margin-top:4px;&quot;&gt;Observability Pipeline&lt;/div&gt;&lt;div style=&quot;font-size:14px;margin-top:20px;&quot;&gt;Fluent Bit Stack&lt;/div&gt;" mermaidId="n:Obs" mermaidBaseStyle="rounded=1;arcSize=4;whiteSpace=wrap;html=1;fillColor=#999999;strokeColor=#8A8A8A;strokeWidth=1;fontColor=#FFFFFF;align=center;verticalAlign=middle;fontFamily=Open Sans,sans-serif;" mermaidBaseValue="&lt;div style=&quot;font-size:12px;font-style:italic;&quot;&gt;&amp;lt;&amp;lt;external_system&amp;gt;&amp;gt;&lt;/div&gt;&lt;div style=&quot;font-size:16px;font-weight:bold;margin-top:4px;&quot;&gt;Observability Pipeline&lt;/div&gt;&lt;div style=&quot;font-size:14px;margin-top:20px;&quot;&gt;Fluent Bit Stack&lt;/div&gt;" id="APXowBNtJEgHI_DdwU7E-67">
+          <mxCell parent="APXowBNtJEgHI_DdwU7E-54" style="rounded=1;arcSize=4;whiteSpace=wrap;html=1;fillColor=#647687;strokeColor=#314354;strokeWidth=1;fontColor=#ffffff;align=center;verticalAlign=middle;fontFamily=Open Sans,sans-serif;" vertex="1">
+            <mxGeometry height="86" width="237.744966442953" x="1270.004966442953" y="1710" as="geometry" />
+          </mxCell>
+        </UserObject>
+        <UserObject label="&lt;div style=&quot;font-size:12px;font-style:italic;&quot;&gt;&amp;lt;&amp;lt;external_system&amp;gt;&amp;gt;&lt;/div&gt;&lt;div style=&quot;font-size:16px;font-weight:bold;margin-top:4px;&quot;&gt;Servizio Inferenza IA&lt;/div&gt;&lt;div style=&quot;font-size:14px;margin-top:20px;&quot;&gt;Python / FastAPI Backend&lt;/div&gt;" mermaidId="n:AIEngine" mermaidBaseStyle="rounded=1;arcSize=4;whiteSpace=wrap;html=1;fillColor=#999999;strokeColor=#8A8A8A;strokeWidth=1;fontColor=#FFFFFF;align=center;verticalAlign=middle;fontFamily=Open Sans,sans-serif;" mermaidBaseValue="&lt;div style=&quot;font-size:12px;font-style:italic;&quot;&gt;&amp;lt;&amp;lt;external_system&amp;gt;&amp;gt;&lt;/div&gt;&lt;div style=&quot;font-size:16px;font-weight:bold;margin-top:4px;&quot;&gt;Servizio Inferenza IA&lt;/div&gt;&lt;div style=&quot;font-size:14px;margin-top:20px;&quot;&gt;Python / FastAPI Backend&lt;/div&gt;" id="APXowBNtJEgHI_DdwU7E-64">
+          <mxCell parent="APXowBNtJEgHI_DdwU7E-54" style="rounded=1;arcSize=4;whiteSpace=wrap;html=1;fillColor=#647687;strokeColor=#314354;strokeWidth=1;fontColor=#ffffff;align=center;verticalAlign=middle;fontFamily=Open Sans,sans-serif;" vertex="1">
+            <mxGeometry height="86" width="237.744966442953" x="90.0026174496644" y="1720" as="geometry" />
+          </mxCell>
+        </UserObject>
+        <UserObject label="&lt;div style=&quot;font-size:12px;font-style:italic;&quot;&gt;&amp;lt;&amp;lt;external_system&amp;gt;&amp;gt;&lt;/div&gt;&lt;div style=&quot;font-size:16px;font-weight:bold;margin-top:4px;&quot;&gt;Infrastruttura Reale&lt;/div&gt;&lt;div style=&quot;font-size:14px;margin-top:20px;&quot;&gt;Backend di Produzione&lt;/div&gt;" mermaidId="n:RealInfra" mermaidBaseStyle="rounded=1;arcSize=4;whiteSpace=wrap;html=1;fillColor=#999999;strokeColor=#8A8A8A;strokeWidth=1;fontColor=#FFFFFF;align=center;verticalAlign=middle;fontFamily=Open Sans,sans-serif;" mermaidBaseValue="&lt;div style=&quot;font-size:12px;font-style:italic;&quot;&gt;&amp;lt;&amp;lt;external_system&amp;gt;&amp;gt;&lt;/div&gt;&lt;div style=&quot;font-size:16px;font-weight:bold;margin-top:4px;&quot;&gt;Infrastruttura Reale&lt;/div&gt;&lt;div style=&quot;font-size:14px;margin-top:20px;&quot;&gt;Backend di Produzione&lt;/div&gt;" id="APXowBNtJEgHI_DdwU7E-66">
+          <mxCell parent="APXowBNtJEgHI_DdwU7E-54" style="rounded=1;arcSize=4;whiteSpace=wrap;html=1;fillColor=#647687;strokeColor=#314354;strokeWidth=1;fontColor=#ffffff;align=center;verticalAlign=middle;fontFamily=Open Sans,sans-serif;" vertex="1">
+            <mxGeometry height="86" width="237.744966442953" x="495.7522818791946" y="1720" as="geometry" />
+          </mxCell>
+        </UserObject>
+        <mxCell id="APXowBNtJEgHI_DdwU7E-103" edge="1" parent="APXowBNtJEgHI_DdwU7E-54" source="APXowBNtJEgHI_DdwU7E-57" style="endArrow=classic;html=1;rounded=0;exitX=0.591;exitY=0.999;exitDx=0;exitDy=0;exitPerimeter=0;entryX=0.5;entryY=0;entryDx=0;entryDy=0;" target="APXowBNtJEgHI_DdwU7E-65" value="">
+          <mxGeometry height="50" relative="1" width="50" as="geometry">
+            <mxPoint x="1017" y="1670" as="sourcePoint" />
+            <mxPoint x="990" y="1728" as="targetPoint" />
+          </mxGeometry>
+        </mxCell>
+        <mxCell id="APXowBNtJEgHI_DdwU7E-104" connectable="0" parent="APXowBNtJEgHI_DdwU7E-103" style="edgeLabel;html=1;align=center;verticalAlign=middle;resizable=0;points=[];" value="Valutazione Attacco" vertex="1">
+          <mxGeometry relative="1" x="-0.3848" y="-2" as="geometry">
+            <mxPoint as="offset" />
+          </mxGeometry>
+        </mxCell>
+        <mxCell id="APXowBNtJEgHI_DdwU7E-105" edge="1" parent="APXowBNtJEgHI_DdwU7E-54" source="APXowBNtJEgHI_DdwU7E-57" style="endArrow=classic;html=1;rounded=0;exitX=0.836;exitY=1.001;exitDx=0;exitDy=0;exitPerimeter=0;entryX=0.5;entryY=0;entryDx=0;entryDy=0;dashed=1;dashPattern=8 8;" target="APXowBNtJEgHI_DdwU7E-67" value="">
+          <mxGeometry height="50" relative="1" width="50" as="geometry">
+            <mxPoint x="1230" y="1720" as="sourcePoint" />
+            <mxPoint x="1280" y="1670" as="targetPoint" />
+          </mxGeometry>
+        </mxCell>
+        <mxCell id="APXowBNtJEgHI_DdwU7E-106" connectable="0" parent="APXowBNtJEgHI_DdwU7E-105" style="edgeLabel;html=1;align=center;verticalAlign=middle;resizable=0;points=[];" value="Esporta JSON" vertex="1">
+          <mxGeometry relative="1" x="-0.1188" y="3" as="geometry">
+            <mxPoint as="offset" />
+          </mxGeometry>
+        </mxCell>
+        <mxCell id="APXowBNtJEgHI_DdwU7E-99" edge="1" parent="1" style="endArrow=classic;startArrow=classic;html=1;rounded=0;entryX=0.132;entryY=1;entryDx=0;entryDy=0;entryPerimeter=0;" target="APXowBNtJEgHI_DdwU7E-57" value="">
+          <mxGeometry height="50" relative="1" width="50" as="geometry">
+            <Array as="points">
+              <mxPoint x="230" y="1680" />
+            </Array>
+            <mxPoint x="210" y="1720" as="sourcePoint" />
+            <mxPoint x="240" y="1530" as="targetPoint" />
+          </mxGeometry>
+        </mxCell>
+        <mxCell id="APXowBNtJEgHI_DdwU7E-100" connectable="0" parent="APXowBNtJEgHI_DdwU7E-99" style="edgeLabel;html=1;align=center;verticalAlign=middle;resizable=0;points=[];" value="API Call: Risk Score" vertex="1">
+          <mxGeometry relative="1" x="0.0721" y="-2" as="geometry">
+            <mxPoint as="offset" />
+          </mxGeometry>
+        </mxCell>
+        <mxCell id="APXowBNtJEgHI_DdwU7E-101" edge="1" parent="1" source="APXowBNtJEgHI_DdwU7E-57" style="endArrow=classic;html=1;rounded=0;exitX=0.376;exitY=1.002;exitDx=0;exitDy=0;exitPerimeter=0;" value="">
+          <mxGeometry height="50" relative="1" width="50" as="geometry">
+            <mxPoint x="510" y="1680" as="sourcePoint" />
+            <mxPoint x="620" y="1720" as="targetPoint" />
+          </mxGeometry>
+        </mxCell>
+        <mxCell id="APXowBNtJEgHI_DdwU7E-102" connectable="0" parent="APXowBNtJEgHI_DdwU7E-101" style="edgeLabel;html=1;align=center;verticalAlign=middle;resizable=0;points=[];" value="Inoltro Trasparente" vertex="1">
+          <mxGeometry relative="1" x="-0.3848" y="-2" as="geometry">
+            <mxPoint as="offset" />
+          </mxGeometry>
+        </mxCell>
+      </root>
+    </mxGraphModel>
+  </diagram>
+</mxfile>
