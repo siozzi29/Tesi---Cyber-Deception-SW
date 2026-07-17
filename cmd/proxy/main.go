@@ -10,6 +10,7 @@ import (
 	"syscall"
 	"time"
 
+	"cyber-deception-waap/pkg/injector"
 	"cyber-deception-waap/pkg/interceptor"
 	"cyber-deception-waap/pkg/listener"
 	"cyber-deception-waap/pkg/router"
@@ -26,11 +27,6 @@ func (m *MockAI) GetRiskScore(r *http.Request) (float64, error) {
 	log.Println("[MOCK AI] Simulazione inferenza... Risk Score calcolato: 0.1 (Sano)")
 	return 0.1, nil
 }
-
-type MockInjector struct{}
-
-func (m *MockInjector) IsHoneyURL(path string) bool { return false }
-func (m *MockInjector) Inject(body []byte) []byte   { return body }
 
 type MockTelemetry struct{}
 
@@ -55,29 +51,35 @@ func main() {
 		panic(fmt.Sprintf("BACKEND_URL non valida: %v", err))
 	}
 
-	// 2. Moduli ancora mock, in attesa di implementazione
+	// 2. Injector reale: genera honeytoken dinamici con TTL 30 minuti.
+	// Close() va chiamato nello shutdown ordinato, non con un defer qui in
+	// cima, altrimenti il goroutine di cleanup resta vivo fino alla fine
+	// naturale di main() invece che nel punto giusto dello spegnimento.
+	realInjector := injector.NewHoneyURLInjector(30 * time.Minute)
+
+	// 3. Moduli ancora mock, in attesa di implementazione (IA e Telemetry)
 	mockAI := &MockAI{}
-	mockInj := &MockInjector{}
 	mockTel := &MockTelemetry{}
 
-	// 3. Creiamo il VERO Security Interceptor, iniettandogli mock + router reale
-	vigile := interceptor.NewSecurityInterceptor(mockAI, mockInj, realRouter, mockTel)
+	// 4. Creiamo il VERO Security Interceptor, iniettandogli i moduli reali
+	//    disponibili (router, injector) più i mock ancora da sostituire
+	vigile := interceptor.NewSecurityInterceptor(mockAI, realInjector, realRouter, mockTel)
 
-	// 4. Passiamo il vigile al Listener che hai già scritto in precedenza
+	// 5. Passiamo il vigile al Listener che hai già scritto in precedenza
 	srv := listener.NewServer(":8080", vigile)
 
-	// 5. Prepariamo il canale per il Graceful Shutdown
+	// 6. Prepariamo il canale per il Graceful Shutdown
 	stopChan := make(chan os.Signal, 1)
 	signal.Notify(stopChan, os.Interrupt, syscall.SIGTERM)
 
-	// 6. Avviamo il server in background
+	// 7. Avviamo il server in background
 	go func() {
 		if err := srv.Start(); err != nil {
 			log.Fatalf("Errore critico del server: %v", err)
 		}
 	}()
 
-	// 7. Restiamo in attesa del segnale di stop (CTRL+C)
+	// 8. Restiamo in attesa del segnale di stop (CTRL+C)
 	<-stopChan
 	log.Println("\nSegnale ricevuto. Inizio Graceful Shutdown...")
 
@@ -87,6 +89,11 @@ func main() {
 	if err := srv.Stop(ctx); err != nil {
 		log.Fatalf("Errore durante lo shutdown: %v", err)
 	}
+
+	// 9. Fermiamo il goroutine di cleanup dell'injector solo DOPO che il
+	// listener ha smesso di accettare traffico, per non rischiare di
+	// spegnerlo mentre una richiesta è ancora in volo.
+	realInjector.Close()
 
 	log.Println("Server spento correttamente.")
 }

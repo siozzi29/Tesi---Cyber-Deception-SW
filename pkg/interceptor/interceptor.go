@@ -79,8 +79,12 @@ func (i *SecurityInterceptor) ServeHTTP(w http.ResponseWriter, r *http.Request) 
 		i.telemetry.LogAsync(r, score, false)
 		i.router.TarpitAndTrap(w, r)
 	} else {
-		// Traffico Sano
+		// Traffico Sano: instradiamo attraverso l'injecting response writer,
+		// che inietta l'esca invisibile SOLO se la risposta è HTML, senza
+		// aggiungere overhead alle risposte non-HTML (JSON, immagini, ecc.).
 		i.telemetry.LogAsync(r, score, false)
-		i.router.Forward(w, r)
+		iw := newInjectingResponseWriter(w, i.injector)
+		i.router.Forward(iw, r)
+		iw.finalize()
 	}
 }
