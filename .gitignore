@@ -220,3 +220,5 @@ __marimo__/
 ai-service/venv/
 ai-service/data/*.csv
 ai-service/models/*.joblib
+*.exe
+waap-proxy
