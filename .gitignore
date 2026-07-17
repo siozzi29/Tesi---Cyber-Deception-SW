@@ -216,3 +216,7 @@ __marimo__/
 
 # Streamlit
 .streamlit/secrets.toml
+
+ai-service/venv/
+ai-service/data/*.csv
+ai-service/models/*.joblib
