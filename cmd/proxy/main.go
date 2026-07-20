@@ -11,19 +11,15 @@ import (
 	"time"
 
 	"cyber-deception-waap/pkg/aiclient"
+	"cyber-deception-waap/pkg/injector"
 	"cyber-deception-waap/pkg/interceptor"
 	"cyber-deception-waap/pkg/listener"
 	"cyber-deception-waap/pkg/router"
 )
 
 // =====================================================================
-// MOCK RESIDUI (Injector e Telemetry, non ancora implementati)
+// TELEMETRY PLACEHOLDER
 // =====================================================================
-
-type MockInjector struct{}
-
-func (m *MockInjector) IsHoneyURL(path string) bool { return false }
-func (m *MockInjector) Inject(body []byte) []byte   { return body }
 
 type MockTelemetry struct{}
 
@@ -70,10 +66,12 @@ func main() {
 		}
 	}
 
-	mockInj := &MockInjector{}
+	realInj := injector.NewHoneyURLInjector(30 * time.Minute)
+	defer realInj.Close()
+
 	mockTel := &MockTelemetry{}
 
-	vigile := interceptor.NewSecurityInterceptor(realAI, mockInj, legitRouter, mockTel, riskThreshold)
+	vigile := interceptor.NewSecurityInterceptor(realAI, realInj, legitRouter, mockTel, riskThreshold)
 
 	srv := listener.NewServer(":8080", vigile)
 

@@ -62,12 +62,25 @@ func NewSecurityInterceptor(ai AIClient, inj URLInjector, r Router, t Telemetry,
 	}
 }
 
+func (i *SecurityInterceptor) serveWithInjection(w http.ResponseWriter, r *http.Request, handler func(http.ResponseWriter, *http.Request)) {
+	if i.injector == nil {
+		handler(w, r)
+		return
+	}
+
+	iw := newInjectingResponseWriter(w, i.injector)
+	defer iw.finalize()
+	handler(iw, r)
+}
+
 func (i *SecurityInterceptor) ServeHTTP(w http.ResponseWriter, r *http.Request) {
 	// 1. Controllo Deterministico (Cyber Deception)
-	if i.injector.IsHoneyURL(r.URL.Path) {
+	if i.injector != nil && i.injector.IsHoneyURL(r.URL.Path) {
 		log.Printf("[!] Attacco rilevato (Honey-URL): %s", r.URL.Path)
 		i.telemetry.LogAsync(r, 1.0, true)
-		i.router.TarpitAndTrap(w, r)
+		i.serveWithInjection(w, r, func(writer http.ResponseWriter, req *http.Request) {
+			i.router.TarpitAndTrap(writer, req)
+		})
 		return
 	}
 
@@ -75,7 +88,9 @@ func (i *SecurityInterceptor) ServeHTTP(w http.ResponseWriter, r *http.Request) 
 	score, err := i.ai.GetRiskScore(r)
 	if err != nil {
 		log.Printf("[!] Errore IA, fail-open: %v", err)
-		i.router.Forward(w, r)
+		i.serveWithInjection(w, r, func(writer http.ResponseWriter, req *http.Request) {
+			i.router.Forward(writer, req)
+		})
 		return
 	}
 
@@ -83,9 +98,13 @@ func (i *SecurityInterceptor) ServeHTTP(w http.ResponseWriter, r *http.Request) 
 	if score > i.riskThreshold {
 		log.Printf("[!] Anomalia rilevata (IA Score %.4f > soglia %.4f): %s", score, i.riskThreshold, r.URL.Path)
 		i.telemetry.LogAsync(r, score, false)
-		i.router.TarpitAndTrap(w, r)
+		i.serveWithInjection(w, r, func(writer http.ResponseWriter, req *http.Request) {
+			i.router.TarpitAndTrap(writer, req)
+		})
 	} else {
 		i.telemetry.LogAsync(r, score, false)
-		i.router.Forward(w, r)
+		i.serveWithInjection(w, r, func(writer http.ResponseWriter, req *http.Request) {
+			i.router.Forward(writer, req)
+		})
 	}
 }
