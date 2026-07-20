@@ -2,6 +2,7 @@ package listener
 
 import (
 	"context"
+	"cyber-deception-waap/pkg/interceptor"
 	"log"
 	"net/http"
 	"time"
@@ -20,11 +21,22 @@ type Server struct {
 }
 
 // NewServer inizializza l'HTTP Listener con parametri di sicurezza stringenti.
-func NewServer(addr string, interceptor InterceptorHandler) *Server {
+func NewServer(addr string, handler InterceptorHandler) *Server {
+	mux := http.NewServeMux()
+	if si, ok := handler.(*interceptor.SecurityInterceptor); ok {
+		mux.HandleFunc("/dashboard", func(w http.ResponseWriter, r *http.Request) {
+			si.DashboardHandler(w, r)
+		})
+		mux.HandleFunc("/dashboard/", func(w http.ResponseWriter, r *http.Request) {
+			si.DashboardHandler(w, r)
+		})
+	}
+	mux.Handle("/", handler)
+
 	return &Server{
 		httpServer: &http.Server{
 			Addr:    addr,
-			Handler: interceptor, // Tutto il traffico passa al Security Interceptor
+			Handler: mux,
 
 			// SISTEMI DI SICUREZZA ANTI-DOS (Non facciamo crashare l'azienda)
 			ReadTimeout:  5 * time.Second,  // Tempo max per leggere l'intera request

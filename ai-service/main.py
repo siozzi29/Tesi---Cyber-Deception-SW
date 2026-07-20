@@ -10,11 +10,17 @@ Avvio:
     uvicorn main:app --host 0.0.0.0 --port 8000
 """
 import os
+import sys
+from pathlib import Path
 
 import joblib
 import numpy as np
 from fastapi import FastAPI
 from pydantic import BaseModel
+
+AI_SERVICE_DIR = Path(__file__).resolve().parent
+if str(AI_SERVICE_DIR) not in sys.path:
+    sys.path.insert(0, str(AI_SERVICE_DIR))
 
 from features import extract_features, features_to_vector, FEATURE_ORDER
 

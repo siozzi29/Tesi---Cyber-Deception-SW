@@ -3,6 +3,8 @@ package interceptor
 import (
 	"log"
 	"net/http"
+	"sync"
+	"time"
 )
 
 // ============================================================================
@@ -27,6 +29,25 @@ type Telemetry interface {
 	LogAsync(r *http.Request, riskScore float64, isPoisoned bool)
 }
 
+// SecurityEvent è l'unità d'informazione usata dal dashboard per mostrare
+// gli ultimi eventi analizzati dal proxy.
+type SecurityEvent struct {
+	Timestamp time.Time `json:"timestamp"`
+	Path      string    `json:"path"`
+	Method    string    `json:"method"`
+	RiskScore float64   `json:"risk_score"`
+	IsHoney   bool      `json:"is_honey"`
+	Routed    string    `json:"routed"`
+}
+
+type SecurityStats struct {
+	TotalRequests int `json:"total_requests"`
+	Forwarded     int `json:"forwarded"`
+	Trapped       int `json:"trapped"`
+	HoneyHits     int `json:"honey_hits"`
+	AIErrors      int `json:"ai_errors"`
+}
+
 // ============================================================================
 // SECURITY INTERCEPTOR (Il Vigile Urbano)
 // ============================================================================
@@ -45,6 +66,11 @@ type SecurityInterceptor struct {
 	router        Router
 	telemetry     Telemetry
 	riskThreshold float64
+
+	mu        sync.Mutex
+	stats     SecurityStats
+	events    []SecurityEvent
+	maxEvents int
 }
 
 // NewSecurityInterceptor inietta le dipendenze. Se riskThreshold <= 0, usa
@@ -59,6 +85,7 @@ func NewSecurityInterceptor(ai AIClient, inj URLInjector, r Router, t Telemetry,
 		router:        r,
 		telemetry:     t,
 		riskThreshold: riskThreshold,
+		maxEvents:     50,
 	}
 }
 
@@ -73,6 +100,39 @@ func (i *SecurityInterceptor) serveWithInjection(w http.ResponseWriter, r *http.
 	handler(iw, r)
 }
 
+func (i *SecurityInterceptor) recordEvent(event SecurityEvent) {
+	i.mu.Lock()
+	defer i.mu.Unlock()
+
+	i.stats.TotalRequests++
+	if event.IsHoney {
+		i.stats.HoneyHits++
+	}
+	if event.Routed == "forwarded" {
+		i.stats.Forwarded++
+	}
+	if event.Routed == "trapped" {
+		i.stats.Trapped++
+	}
+	if event.Routed == "ai_error" {
+		i.stats.AIErrors++
+	}
+
+	if len(i.events) >= i.maxEvents {
+		i.events = i.events[1:]
+	}
+	i.events = append(i.events, event)
+}
+
+func (i *SecurityInterceptor) Snapshot() (SecurityStats, []SecurityEvent) {
+	i.mu.Lock()
+	defer i.mu.Unlock()
+
+	copiedStats := i.stats
+	copiedEvents := append([]SecurityEvent(nil), i.events...)
+	return copiedStats, copiedEvents
+}
+
 func (i *SecurityInterceptor) ServeHTTP(w http.ResponseWriter, r *http.Request) {
 	// 1. Controllo Deterministico (Cyber Deception)
 	if i.injector != nil && i.injector.IsHoneyURL(r.URL.Path) {
@@ -80,6 +140,14 @@ func (i *SecurityInterceptor) ServeHTTP(w http.ResponseWriter, r *http.Request) 
 		i.telemetry.LogAsync(r, 1.0, true)
 		i.serveWithInjection(w, r, func(writer http.ResponseWriter, req *http.Request) {
 			i.router.TarpitAndTrap(writer, req)
+		})
+		i.recordEvent(SecurityEvent{
+			Timestamp: time.Now(),
+			Path:      r.URL.Path,
+			Method:    r.Method,
+			RiskScore: 1.0,
+			IsHoney:   true,
+			Routed:    "trapped",
 		})
 		return
 	}
@@ -91,6 +159,14 @@ func (i *SecurityInterceptor) ServeHTTP(w http.ResponseWriter, r *http.Request) 
 		i.serveWithInjection(w, r, func(writer http.ResponseWriter, req *http.Request) {
 			i.router.Forward(writer, req)
 		})
+		i.recordEvent(SecurityEvent{
+			Timestamp: time.Now(),
+			Path:      r.URL.Path,
+			Method:    r.Method,
+			RiskScore: 0,
+			IsHoney:   false,
+			Routed:    "ai_error",
+		})
 		return
 	}
 
@@ -101,10 +177,26 @@ func (i *SecurityInterceptor) ServeHTTP(w http.ResponseWriter, r *http.Request) 
 		i.serveWithInjection(w, r, func(writer http.ResponseWriter, req *http.Request) {
 			i.router.TarpitAndTrap(writer, req)
 		})
+		i.recordEvent(SecurityEvent{
+			Timestamp: time.Now(),
+			Path:      r.URL.Path,
+			Method:    r.Method,
+			RiskScore: score,
+			IsHoney:   false,
+			Routed:    "trapped",
+		})
 	} else {
 		i.telemetry.LogAsync(r, score, false)
 		i.serveWithInjection(w, r, func(writer http.ResponseWriter, req *http.Request) {
 			i.router.Forward(writer, req)
+		})
+		i.recordEvent(SecurityEvent{
+			Timestamp: time.Now(),
+			Path:      r.URL.Path,
+			Method:    r.Method,
+			RiskScore: score,
+			IsHoney:   false,
+			Routed:    "forwarded",
 		})
 	}
 }

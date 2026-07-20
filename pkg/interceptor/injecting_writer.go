@@ -50,6 +50,19 @@ func (iw *injectingResponseWriter) Header() http.Header {
 	return iw.underlying.Header()
 }
 
+// shouldBufferResponse decide se una risposta va bufferizzata per l'injection.
+// In caso di Content-Type assente o ancora non disponibile al momento del
+// WriteHeader, usiamo un fallback conservativo e bufferizziamo: meglio
+// tentare l'injection su HTML potenziale che saltarla completamente.
+func shouldBufferResponse(contentType string) bool {
+	contentType = strings.TrimSpace(contentType)
+	if contentType == "" {
+		return true
+	}
+	return strings.HasPrefix(contentType, "text/html") ||
+		strings.HasPrefix(contentType, "application/xhtml+xml")
+}
+
 // WriteHeader decide la modalità (buffering vs passthrough) in base al
 // Content-Type e, solo in passthrough, inoltra subito gli header reali.
 func (iw *injectingResponseWriter) WriteHeader(code int) {
@@ -60,7 +73,7 @@ func (iw *injectingResponseWriter) WriteHeader(code int) {
 	iw.statusCode = code
 
 	ct := iw.underlying.Header().Get("Content-Type")
-	iw.buffering = strings.HasPrefix(ct, "text/html")
+	iw.buffering = shouldBufferResponse(ct)
 
 	if !iw.buffering {
 		// Traffico non-HTML: nessun buffering, scriviamo subito e via.
