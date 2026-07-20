@@ -1,0 +1,34 @@
+Caricamento modello allenato su CSIC2010...
+Caricamento dataset FWAF...
+  44666 query malevole, 1265989 query benigne
+  Campionate 50.000 query benigne su 50000 per il test
+Calcolo feature e risk score...
+C:\Users\simon\AppData\Local\Python\pythoncore-3.14-64\Lib\site-packages\sklearn\utils\validation.py:2691: UserWarning: X does not have valid feature names, but StandardScaler was fitted with feature names
+  warnings.warn(
+
+======================================================================
+RISULTATI CROSS-DATASET: modello CSIC2010 valutato su FWAF
+======================================================================
+Soglia usata (identica a CSIC2010, nessun re-training): 0.7792
+FPR su traffico benigno FWAF: 0.0160%  (per confronto: 1.00% su CSIC2010)
+Precision: 0.982 | Recall: 0.010 | F1: 0.019
+
+Classification report:
+              precision    recall  f1-score   support
+
+     Normale      0.531     1.000     0.693     50000
+     Anomalo      0.982     0.010     0.019     44666
+
+    accuracy                          0.533     94666
+   macro avg      0.756     0.505     0.356     94666
+weighted avg      0.744     0.533     0.375     94666
+
+Confusion matrix:
+[[49992     8]
+ [44231   435]]
+
+
+ Il modello raggiunge un FPR eccellente (1%) e recall modesto in-distribution su CSIC2010. 
+ Un test di generalizzazione cross-dataset su FWAF mostra un crollo del recall (9.2%→1.0%), attribuibile principalmente all'assenza nel dataset FWAF di corpo/metodo POST 
+ — canale su cui il modello si affida pesantemente per rilevare SQLi/XSS in CSIC2010. Questo evidenzia un limite noto degli approcci di anomaly detection allenati su singola sorgente: 
+ la specializzazione sulla struttura del traffico di training riduce la trasferibilità a contesti applicativi diversi.
