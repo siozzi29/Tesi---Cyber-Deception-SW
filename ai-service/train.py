@@ -130,9 +130,10 @@ X_all = scaler.transform(features_df)  # per la valutazione su tutto il dataset
 # 4. TRAINING
 # ---------------------------------------------------------------------------
 model = IsolationForest(
-    n_estimators=300,
-    max_samples="auto",
-    contamination=0.05,   # margine di tolleranza; la tariamo con la validazione sotto
+    n_estimators=800,      # aumentato da 300: pi\u00f9 alberi, stima pi\u00f9 stabile del punteggio
+    max_samples=512,       # numero fisso di campioni per albero (invece di "auto")
+    max_features=1.0,
+    contamination=0.2,     # aumentato da 0.05: assunzione pi\u00f9 realistica della quota di anomalie
     random_state=42,
     n_jobs=-1,
 )
@@ -208,8 +209,10 @@ joblib.dump(model, "models/isolation_forest.joblib")
 joblib.dump(scaler, "models/scaler.joblib")
 joblib.dump(list(features_df.columns), "models/feature_order.joblib")
 joblib.dump(RISK_THRESHOLD, "models/risk_threshold.joblib")
+joblib.dump({"min": float(raw_scores.min()), "max": float(raw_scores.max())}, "models/score_bounds.joblib")
 
-print("\nModello, scaler, ordine feature e soglia salvati in models/")
+print("\nModello, scaler, ordine feature, soglia e bound normalizzazione salvati in models/")
 print(f"Soglia operativa (RISK_THRESHOLD): {RISK_THRESHOLD:.4f}")
+print(f"Score bounds: min={raw_scores.min():.4f}, max={raw_scores.max():.4f}")
 print("Ordine feature (fondamentale per replicarlo in Go):")
 print(list(features_df.columns))

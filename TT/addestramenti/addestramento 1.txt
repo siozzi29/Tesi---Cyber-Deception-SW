@@ -100,24 +100,27 @@ Confusion matrix:
 [[34200  1800]
  [19951  5114]]
 
-=== Ricerca soglia ottimale (massimizzando F1 sulla classe Anomalous) ===
-Soglia ottimale trovata: 0.275 (F1=0.716)
-Precision: 0.580 | Recall: 0.936
+=== Soglia paranoica (target FPR <= 1%) ===
+Soglia impostata: 0.7792
+FPR effettivo ottenuto: 1.0000%  (Falsi Positivi: 360 su 36000 traffico sano)
+Precision: 0.865 | Recall: 0.092 | F1: 0.166
 
-=== Classification report a soglia ottimale ===
+=== Classification report a soglia paranoica ===
               precision    recall  f1-score   support
 
-           0      0.923     0.528     0.671     36000
-           1      0.580     0.936     0.716     25065
+           0      0.610     0.990     0.755     36000
+           1      0.865     0.092     0.166     25065
 
-    accuracy                          0.695     61065
-   macro avg      0.751     0.732     0.694     61065
-weighted avg      0.782     0.695     0.690     61065
+    accuracy                          0.621     61065
+   macro avg      0.737     0.541     0.460     61065
+weighted avg      0.715     0.621     0.513     61065
 
 Confusion matrix:
-[[19000 17000]
- [ 1596 23469]]
+[[35640   360]
+ [22768  2297]]
 
-Modello, scaler e ordine feature salvati in models/
+Modello, scaler, ordine feature, soglia e bound normalizzazione salvati in models/
+Soglia operativa (RISK_THRESHOLD): 0.7792
+Score bounds: min=-0.1241, max=0.2663
 Ordine feature (fondamentale per replicarlo in Go):
 ['url_length', 'path_length', 'path_depth', 'num_params', 'query_length', 'num_digits', 'num_special_chars_url', 'num_uppercase', 'url_entropy', 'content_length', 'has_content', 'num_special_chars_content', 'content_entropy', 'method_get', 'method_post', 'method_put', 'suspicious_token_count', 'max_param_value_length', 'num_encoded_chars', 'digit_ratio', 'special_char_ratio', 'num_equals', 'num_ampersands', 'params_vs_equals_mismatch', 'content_type_is_form']

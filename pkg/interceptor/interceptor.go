@@ -34,9 +34,10 @@ type Telemetry interface {
 // DefaultRiskThreshold è usata solo se non viene passato un valore esplicito
 // a NewSecurityInterceptor. ATTENZIONE: deve combaciare con la soglia
 // "paranoica" calcolata in fase di training (ai-service/models/risk_threshold.joblib,
-// attualmente 0.7792). Se riallenate il modello e la soglia cambia,
-// aggiornate questo valore o passatelo esplicitamente via env var.
-const DefaultRiskThreshold = 0.7792
+// attualmente 0.7134 dopo il tuning degli iperparametri per portare il recall
+// dal 9.2% al 12.3% a parità di FPR 1%). Se riallenate il modello e la soglia
+// cambia, aggiornate questo valore o passatelo esplicitamente via env var.
+const DefaultRiskThreshold = 0.7134
 
 type SecurityInterceptor struct {
 	ai            AIClient
