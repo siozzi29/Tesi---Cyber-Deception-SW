@@ -218,7 +218,7 @@ __marimo__/
 .streamlit/secrets.toml
 
 ai-service/venv/
-ai-service/data/*.csv
-ai-service/models/*.joblib
+ai-service/data/
+ai-service/models/
 *.exe
 waap-proxy
