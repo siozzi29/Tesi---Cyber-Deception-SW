@@ -54,10 +54,13 @@ type SecurityStats struct {
 
 // DefaultRiskThreshold è usata solo se non viene passato un valore esplicito
 // a NewSecurityInterceptor. ATTENZIONE: deve combaciare con la soglia
-// "paranoica" calcolata in fase di training (ai-service/models/risk_threshold.joblib,
-// attualmente 0.7134 dopo il tuning degli iperparametri per portare il recall
-// dal 9.2% al 12.3% a parità di FPR 1%). Se riallenate il modello e la soglia
-// cambia, aggiornate questo valore o passatelo esplicitamente via env var.
+// "paranoica" calcolata in fase di training (salvata tra i file in
+// ai-service/models/, attualmente 0.7134 dopo il tuning degli iperparametri
+// per portare il recall dal 9.2% al 12.3% a parità di FPR 1%). Se riallenate
+// il modello e la soglia cambia, aggiornate questo valore o passatelo
+// esplicitamente via env var RISK_THRESHOLD — verificate anche in quale
+// file esatto la soglia viene persistita lato ai-service, per tenerlo
+// allineato a questo commento.
 const DefaultRiskThreshold = 0.7134
 
 type SecurityInterceptor struct {
@@ -87,6 +90,18 @@ func NewSecurityInterceptor(ai AIClient, inj URLInjector, r Router, t Telemetry,
 		riskThreshold: riskThreshold,
 		maxEvents:     50,
 	}
+}
+
+// logTelemetry centralizza la chiamata al Telemetry, con nil-check: se il
+// componente di telemetria non è stato iniettato (es. config parziale in
+// test, o non ancora cablato in qualche ambiente), evitiamo un panic invece
+// di propagarlo fino al client — coerente con lo spirito fail-safe del resto
+// del proxy.
+func (i *SecurityInterceptor) logTelemetry(r *http.Request, riskScore float64, isPoisoned bool) {
+	if i.telemetry == nil {
+		return
+	}
+	i.telemetry.LogAsync(r, riskScore, isPoisoned)
 }
 
 func (i *SecurityInterceptor) serveWithInjection(w http.ResponseWriter, r *http.Request, handler func(http.ResponseWriter, *http.Request)) {
@@ -137,7 +152,7 @@ func (i *SecurityInterceptor) ServeHTTP(w http.ResponseWriter, r *http.Request) 
 	// 1. Controllo Deterministico (Cyber Deception)
 	if i.injector != nil && i.injector.IsHoneyURL(r.URL.Path) {
 		log.Printf("[!] Attacco rilevato (Honey-URL): %s", r.URL.Path)
-		i.telemetry.LogAsync(r, 1.0, true)
+		i.logTelemetry(r, 1.0, true)
 		i.serveWithInjection(w, r, func(writer http.ResponseWriter, req *http.Request) {
 			i.router.TarpitAndTrap(writer, req)
 		})
@@ -156,6 +171,12 @@ func (i *SecurityInterceptor) ServeHTTP(w http.ResponseWriter, r *http.Request) 
 	score, err := i.ai.GetRiskScore(r)
 	if err != nil {
 		log.Printf("[!] Errore IA, fail-open: %v", err)
+		// FIX: prima questo ramo non chiamava LogAsync — i fallimenti/timeout
+		// dell'AI service (es. sotto attacco o sotto carico) sparivano dalla
+		// telemetria "vera" e restavano visibili solo nelle stats locali del
+		// dashboard. RiskScore -1 per distinguere in telemetria un "errore IA"
+		// da uno score reale 0 (traffico giudicato sicuro).
+		i.logTelemetry(r, -1, false)
 		i.serveWithInjection(w, r, func(writer http.ResponseWriter, req *http.Request) {
 			i.router.Forward(writer, req)
 		})
@@ -173,7 +194,7 @@ func (i *SecurityInterceptor) ServeHTTP(w http.ResponseWriter, r *http.Request) 
 	// 3. Routing Basato su Soglia (paranoica, FPR<=1% calcolata in training)
 	if score > i.riskThreshold {
 		log.Printf("[!] Anomalia rilevata (IA Score %.4f > soglia %.4f): %s", score, i.riskThreshold, r.URL.Path)
-		i.telemetry.LogAsync(r, score, false)
+		i.logTelemetry(r, score, false)
 		i.serveWithInjection(w, r, func(writer http.ResponseWriter, req *http.Request) {
 			i.router.TarpitAndTrap(writer, req)
 		})
@@ -186,7 +207,7 @@ func (i *SecurityInterceptor) ServeHTTP(w http.ResponseWriter, r *http.Request) 
 			Routed:    "trapped",
 		})
 	} else {
-		i.telemetry.LogAsync(r, score, false)
+		i.logTelemetry(r, score, false)
 		i.serveWithInjection(w, r, func(writer http.ResponseWriter, req *http.Request) {
 			i.router.Forward(writer, req)
 		})

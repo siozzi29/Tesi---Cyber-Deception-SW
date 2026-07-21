@@ -23,6 +23,14 @@ const (
 	tokenByteLen    = 8                // 16 caratteri hex, entropia sufficiente e non-guessable
 	defaultTTL      = 30 * time.Minute // durata di vita di un honeytoken
 	cleanupInterval = 5 * time.Minute  // frequenza dello sweep di pulizia
+
+	// maxActiveTokens è il tetto anti-memory-leak sul numero di honeytoken
+	// vivi contemporaneamente. Tra due sweep (cleanupInterval) un sito con
+	// traffico HTML alto, o un bot che fa scraping aggressivo di pagine
+	// legittime, potrebbe far crescere la mappa senza limite. Oltre la
+	// soglia, fail-safe: saltiamo l'injection su quella risposta invece di
+	// rischiare l'esaurimento della memoria del proxy.
+	maxActiveTokens = 50_000
 )
 
 // honeyEntry traccia la scadenza di un singolo honeytoken.
@@ -32,10 +40,11 @@ type honeyEntry struct {
 
 // HoneyURLInjector implementa interceptor.URLInjector.
 type HoneyURLInjector struct {
-	mu     sync.RWMutex
-	tokens map[string]honeyEntry
-	ttl    time.Duration
-	stopCh chan struct{}
+	mu        sync.RWMutex
+	tokens    map[string]honeyEntry
+	ttl       time.Duration
+	stopCh    chan struct{}
+	closeOnce sync.Once
 }
 
 // NewHoneyURLInjector crea l'injector e avvia il goroutine di pulizia periodica
@@ -55,8 +64,11 @@ func NewHoneyURLInjector(ttl time.Duration) *HoneyURLInjector {
 
 // Close ferma il goroutine di pulizia. Va chiamato durante il graceful
 // shutdown dell'applicazione per non lasciare goroutine appese.
+// Idempotente: chiamarlo più di una volta non causa panic.
 func (h *HoneyURLInjector) Close() {
-	close(h.stopCh)
+	h.closeOnce.Do(func() {
+		close(h.stopCh)
+	})
 }
 
 // cleanupLoop rimuove periodicamente i token scaduti dalla mappa.
@@ -114,10 +126,19 @@ func (h *HoneyURLInjector) IsHoneyURL(path string) bool {
 
 // Inject implementa interceptor.URLInjector: genera un nuovo honeytoken,
 // lo registra, e lo inserisce nel body HTML come link invisibile appena
-// prima di </body>. Se la generazione fallisce, ritorna il body originale
-// invariato (fail-open: non vogliamo rompere una risposta legittima per
-// un problema nell'iniezione dell'esca).
+// prima di </body>. Se la generazione fallisce, O se abbiamo raggiunto il
+// tetto anti-memory-leak, ritorna il body originale invariato (fail-open:
+// non vogliamo rompere una risposta legittima per un problema di injection).
 func (h *HoneyURLInjector) Inject(body []byte) []byte {
+	h.mu.RLock()
+	activeCount := len(h.tokens)
+	h.mu.RUnlock()
+
+	if activeCount >= maxActiveTokens {
+		log.Printf("[INJECTOR] Tetto di %d honeytoken attivi raggiunto, skip injection su questa risposta", maxActiveTokens)
+		return body
+	}
+
 	token, err := h.generateToken()
 	if err != nil {
 		log.Printf("[INJECTOR] Errore generazione honeytoken, skip injection: %v", err)
