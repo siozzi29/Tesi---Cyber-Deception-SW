@@ -4,6 +4,9 @@ import pandas as pd
 import numpy as np
 from pathlib import Path
 import joblib
+import matplotlib.pyplot as plt
+import seaborn as sns
+from sklearn.decomposition import PCA
 from sklearn.ensemble import IsolationForest
 from sklearn.metrics import precision_score, recall_score, f1_score, roc_curve, auc
 from sklearn.model_selection import train_test_split, KFold
@@ -31,7 +34,7 @@ def normalize_scores(raw_scores, min_bound, max_bound):
     return np.clip(normalized, 0.0, 1.0)
 
 def main():
-    print("[1/8] Caricamento e preparazione dataset...")
+    print("[1/9] Caricamento e preparazione dataset...")
     df_2010 = preprocess.load_csic2010(DATA_DIR / "csic2010.csv")
     df_ecml = preprocess.load_csic_ecml(DATA_DIR / "csic_ecml_final.csv")
     colonne_utili = ["url", "method", "content", "content_type", "label"]    # Definisci le colonne rigorose di cui hai effettivamente bisogno
@@ -40,7 +43,7 @@ def main():
     df_all = pd.concat([df_2010, df_ecml], ignore_index=True)
     df_dedup = preprocess.deduplicate(df_all)
     
-    print(f"[2/8] Creazione split a 3 vie (Random State 42)...")
+    print(f"[2/9] Creazione split a 3 vie (Random State 42)...")
     df_normal = df_dedup[df_dedup["label"] == 0]
     df_anomalous = df_dedup[df_dedup["label"] == 1]
     
@@ -59,12 +62,12 @@ def main():
     print(f"      Validation: {len(df_val)} ({len(val_norm)} normali, {len(val_anom)} anomali)")
     print(f"      Test: {len(df_test)} ({len(test_norm)} normali, {len(test_anom)} anomali)")
     
-    print("[3/8] Estrazione feature vettoriali...")
+    print("[3/9] Estrazione feature vettoriali...")
     X_train, y_train = extract_matrix(df_train)
     X_val, y_val = extract_matrix(df_val)
     X_test, y_test = extract_matrix(df_test)
     
-    print("[4/8] Addestramento Isolation Forest (Grid Search su Validation)...")
+    print("[4/9] Addestramento Isolation Forest (Grid Search su Validation)...")
     hyperparams = [
         {"n_estimators": n, "max_samples": m, "contamination": c}
         for n in [800]
@@ -112,9 +115,9 @@ def main():
                 best_params = params
                 
     print(f"      Iperparametri scelti: {best_params}")
-    print(f"[5/8] Soglia di rischio ottimizzata trovata: {best_threshold:.4f} (Recall validazione: {best_recall:.4f})")
+    print(f"[5/9] Soglia di rischio ottimizzata trovata: {best_threshold:.4f} (Recall validazione: {best_recall:.4f})")
     
-    print("[6/8] Valutazione blind-test (Eseguita 1 sola volta)...")
+    print("[6/9] Valutazione blind-test (Eseguita 1 sola volta)...")
     test_raw = -best_model.decision_function(X_test)
     test_scores = normalize_scores(test_raw, best_bounds[0], best_bounds[1])
     
@@ -128,12 +131,12 @@ def main():
     print(f"      - F1 Score:  {f1_score(y_test, y_pred):.4f}")
     print(f"      - AUC ROC:   {test_auc:.4f}")
     
-    print("[7/8] Salvataggio dei joblib nella cartella models...")
+    print("[7/9] Salvataggio dei joblib nella cartella models...")
     joblib.dump(best_model, MODELS_DIR / "isolation_forest.joblib")
     joblib.dump(float(best_threshold), MODELS_DIR / "risk_threshold.joblib")
     joblib.dump(best_bounds, MODELS_DIR / "score_bounds.joblib")
     
-    print("[8/8] Esecuzione k-fold per verifica stabilità soglia (Opzionale)...")
+    print("[8/9] Esecuzione k-fold per verifica stabilità soglia (Opzionale)...")
     seeds = [10, 42, 123, 777, 999]
     kfold_thresholds = []
     kfold_recalls = []
@@ -164,8 +167,68 @@ def main():
             
     print(f"      Soglia media: {np.mean(kfold_thresholds):.4f} (Deviazione Standard: {np.std(kfold_thresholds):.4f})")
     print(f"      Recall medio: {np.mean(kfold_recalls):.4f} (Deviazione Standard: {np.std(kfold_recalls):.4f})")
-    print("\nProcesso di ML completato con successo. Dati e modelli salvati e pronti per FastAPI.")
+    
+    print("[9/9] Generazione dei grafici di addestramento (Distribuzione e PCA pulita)...")
+    
+    # Grafico 1: Distribuzione degli score
+    train_raw_final = -best_model.decision_function(X_train)
+    train_scores_final = normalize_scores(train_raw_final, best_bounds[0], best_bounds[1])
+    
+    plt.figure(figsize=(10, 6))
+    sns.histplot(train_scores_final, bins=50, kde=True, color="darkblue")
+    plt.title("Distribuzione degli Score di Anomalia (Isolation Forest)")
+    plt.xlabel("Score Normalizzato (Valori prossimi a 1 indicano anomalia)")
+    plt.ylabel("Frequenza delle Richieste HTTP")
+    plt.grid(True, linestyle="--", alpha=0.6)
+    plt.savefig(MODELS_DIR / "distribuzione_score.png", dpi=300)
+    plt.close()
+
+    # Grafico 2: Confini Decisionali con PCA (Versione Campionata e Pulita)
+    pca = PCA(n_components=2)
+    
+    X_all_matrix = np.vstack([X_train, X_val, X_test])
+    y_all_labels = np.concatenate([np.zeros(len(X_train)), y_val, y_test])
+    
+    X_all_dense = X_all_matrix.toarray() if hasattr(X_all_matrix, 'toarray') else X_all_matrix
+    X_all_2d = pca.fit_transform(X_all_dense)
+
+    x_min, x_max = X_all_2d[:, 0].min() - 1, X_all_2d[:, 0].max() + 1
+    y_min, y_max = X_all_2d[:, 1].min() - 1, X_all_2d[:, 1].max() + 1
+    xx, yy = np.meshgrid(np.linspace(x_min, x_max, 100),
+                         np.linspace(y_min, y_max, 100))
+                         
+    Z_raw = -best_model.decision_function(pca.inverse_transform(np.c_[xx.ravel(), yy.ravel()]))
+    Z = normalize_scores(Z_raw, best_bounds[0], best_bounds[1])
+    Z = Z.reshape(xx.shape)
+
+    # Campionamento dei punti per evitare la saturazione visiva del grafico
+    np.random.seed(42)
+    normal_indices = np.where(y_all_labels == 0)[0]
+    anomalous_indices = np.where(y_all_labels == 1)[0]
+    
+    # Selezioniamo un numero massimo di punti leggibili a schermo
+    if len(normal_indices) > 2500:
+        normal_indices = np.random.choice(normal_indices, 2500, replace=False)
+    if len(anomalous_indices) > 1000:
+        anomalous_indices = np.random.choice(anomalous_indices, 1000, replace=False)
+
+    plt.figure(figsize=(10, 6))
+    # Sfondo sfumato dei confini decisionali dell'IA
+    plt.contourf(xx, yy, Z, cmap=plt.cm.Blues_r, alpha=0.7)
+    
+    # Plot pulito dei punti campionati
+    plt.scatter(X_all_2d[normal_indices, 0], X_all_2d[normal_indices, 1], s=20, edgecolor="k", color="royalblue", alpha=0.6, label="Traffico Legittimo")
+    plt.scatter(X_all_2d[anomalous_indices, 0], X_all_2d[anomalous_indices, 1], s=30, edgecolor="k", color="crimson", alpha=0.9, marker="X", label="Attacchi / Anomalie")
+          
+    plt.title("Confini Decisionali WAAP e Rilevamento Anomalie")
+    plt.xlabel("Componente Principale 1")
+    plt.ylabel("Componente Principale 2")
+    plt.legend(loc="upper right")
+    plt.grid(True, linestyle="--", alpha=0.3)
+    plt.savefig(MODELS_DIR / "confini_decisionali.png", dpi=300)
+    plt.close()
+
+    print("\nProcesso di ML completato con successo. Grafici puliti e pronti per la tesi.")
 
 if __name__ == "__main__":
     main()
-
