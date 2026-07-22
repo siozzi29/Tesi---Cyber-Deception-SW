@@ -50,7 +50,7 @@ def health_check():
     """Endpoint di monitoraggio primario, utilizzato per garantire la disponibilità del servizio interno."""
     return {"status": "ok", "message": "Il servizio ML è operativo."}
 
-@app.post("/predict")
+@app.post("/score", response_model=ScoreResponse)
 def score_traffic(payload: RequestPayload):
     """
     Riceve il traffico grezzo inoltrato dal proxy Go, ne calcola la rappresentazione

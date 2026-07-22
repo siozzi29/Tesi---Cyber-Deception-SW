@@ -12,7 +12,8 @@ import (
 // LegitRouter instrada il traffico sano verso l'infrastruttura reale (WordPress
 // su Compute Engine) e gestisce il tarpitting per il traffico sospetto.
 type LegitRouter struct {
-	proxy *httputil.ReverseProxy
+	proxy       *httputil.ReverseProxy
+	tarpitDelay time.Duration
 }
 
 // NewLegitRouter costruisce il router puntando all'IP INTERNO della VM
@@ -44,7 +45,7 @@ func NewLegitRouter(backendAddr string) (*LegitRouter, error) {
 		w.WriteHeader(http.StatusBadGateway)
 	}
 
-	return &LegitRouter{proxy: proxy}, nil
+	return &LegitRouter{proxy: proxy, tarpitDelay: 3 * time.Second}, nil
 }
 
 // Forward inoltra la richiesta sana verso WordPress in modo trasparente.
@@ -55,7 +56,7 @@ func (lr *LegitRouter) Forward(w http.ResponseWriter, r *http.Request) {
 // TarpitAndTrap rallenta deliberatamente la risposta verso un attaccante
 // sospetto prima di restituire una pagina civetta.
 func (lr *LegitRouter) TarpitAndTrap(w http.ResponseWriter, r *http.Request) {
-	time.Sleep(3 * time.Second)
+	time.Sleep(lr.tarpitDelay)
 
 	w.Header().Set("Content-Type", "text/html")
 	w.WriteHeader(http.StatusOK)
