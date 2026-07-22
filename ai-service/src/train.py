@@ -34,6 +34,9 @@ def main():
     print("[1/8] Caricamento e preparazione dataset...")
     df_2010 = preprocess.load_csic2010(DATA_DIR / "csic2010.csv")
     df_ecml = preprocess.load_csic_ecml(DATA_DIR / "csic_ecml_final.csv")
+    colonne_utili = ["url", "method", "content", "content_type", "label"]    # Definisci le colonne rigorose di cui hai effettivamente bisogno
+    df_2010 = df_2010[colonne_utili] # Filtra entrambi i dataframe per mantenere solo quelle colonne, scartando lingua, protocollo ecc.
+    df_ecml = df_ecml[colonne_utili]
     df_all = pd.concat([df_2010, df_ecml], ignore_index=True)
     df_dedup = preprocess.deduplicate(df_all)
     
@@ -165,3 +168,4 @@ def main():
 
 if __name__ == "__main__":
     main()
+

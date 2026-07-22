@@ -63,7 +63,7 @@ type HTTPAIClient struct {
 // va dichiarato chiaramente in tesi per non contraddirsi.
 func NewHTTPAIClient(endpoint string, timeout time.Duration) *HTTPAIClient {
 	if timeout <= 0 {
-		timeout = 20 * time.Millisecond
+		timeout = 5 * time.Second
 	}
 	return &HTTPAIClient{
 		endpoint: endpoint,
