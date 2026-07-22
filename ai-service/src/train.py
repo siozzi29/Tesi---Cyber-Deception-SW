@@ -7,8 +7,8 @@ import joblib
 from sklearn.ensemble import IsolationForest
 from sklearn.metrics import precision_score, recall_score, f1_score, roc_curve, auc
 from sklearn.model_selection import train_test_split, KFold
-import preprocess
-import features
+from src import preprocess
+from src import features
 
 # Calcolo dinamico delle directory per massima portabilità
 BASE_DIR = Path(__file__).resolve().parent.parent
@@ -63,9 +63,10 @@ def main():
     
     print("[4/8] Addestramento Isolation Forest (Grid Search su Validation)...")
     hyperparams = [
-        {"n_estimators": 100, "max_samples": "auto", "contamination": 0.01},
-        {"n_estimators": 200, "max_samples": 256, "contamination": 0.05},
-        {"n_estimators": 200, "max_samples": "auto", "contamination": 0.01}
+        {"n_estimators": n, "max_samples": m, "contamination": c}
+        for n in [800]
+        for m in [1.0]
+        for c in [0.01, 0.02, 0.03,0.05, 0.08, 0.1,]
     ]
     
     best_model = None
@@ -74,10 +75,15 @@ def main():
     best_bounds = (0, 0)
     best_params = {}
     
-    for params in hyperparams:
-        # Fit rigoroso solo sui dati normali
-        model = IsolationForest(random_state=42, **params)
-        model.fit(X_train)
+    for i, params in enumerate(hyperparams, 1):
+        print(f"      [{i}/{len(hyperparams)}] Provo {params}...")
+        try:
+            # Fit rigoroso solo sui dati normali con gestione degli errori sui parametri
+            model = IsolationForest(random_state=42, **params)
+            model.fit(X_train)
+        except ValueError as e:
+            print(f"      [SKIP] {params} -> {e}")
+            continue
         
         # Scikit-Learn decision_function: positivo = normale, negativo = anomalo.
         # Invertiamo il segno per avere una logica in cui rischio alto = maggiore anomalia.
