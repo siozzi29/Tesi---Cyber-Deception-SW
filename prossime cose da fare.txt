@@ -1,0 +1,70 @@
+Telemetria: MockTelemetry in cmd/proxy/main.go è ancora un placeholder — logga solo su stdout, non persiste nulla. Se il dashboard deve sopravvivere a un riavvio del processo, questo è il buco più importante rimasto lato Go.
+preprocess.py e injecting_writer.go: scoperti da test, minori ma da chiudere se vuoi coverage completa.
+waap-proxy.exe: è un binario Windows. Per GCP ti serve un binario Linux (GOOS=linux GOARCH=amd64 go build), altrimenti il container/VM non lo esegue.
+
+Ok, capo — cambia la premessa: non stai più "ricollegando" pezzi esistenti, stai ricostruendo l'infrastruttura da zero. Ti riscrivo il punto 2 come piano di creazione completo, in ordine di dipendenza (ogni step presuppone il precedente), pensato anche per non farti risprecare soldi mentre non lavori attivamente al progetto.
+
+2. Ricostruzione infrastruttura GCP da zero — piano teorico
+Step 0 — Prima di creare qualunque risorsa: contenimento costi
+
+Dato che il motivo della cancellazione era il costo, vale la pena impostare due cose prima di ricreare tutto:
+
+Budget alert sul progetto GCP (soglia bassa, es. 5-10€), così ricevi una notifica prima di sorprese.
+Convenzione di lavoro: le VM restano spente quando non stai testando/lavorando (GCP non addebita il compute di una VM spenta, solo lo storage del disco, che è marginale). Questa è probabilmente la causa reale del costo "anche se inutilizzato" — una VM accesa consuma anche a zero traffico.
+Step 1 — Rete: VPC e subnet
+
+Prima risorsa da ricreare, tutto il resto dipende da questa:
+
+Una VPC dedicata (o riusa la default se il progetto è ancora vivo — verifica se il progetto cyber-deception-502511 esiste ancora o va ricreato anche quello).
+Una subnet nella regione che userai (stessa regione per tutte le VM, riduce sia latenza che costi di traffico inter-zona).
+Range IP interno pianificato in modo che WordPress e proxy restino su indirizzi prevedibili (semplifica sia la configurazione sia la stesura della tesi, dove citi IP interni specifici).
+Step 2 — VM wordpress-1-vm
+Macchina piccola (es. e2-micro o e2-small, sufficiente per un WordPress dimostrativo, non serve sovradimensionare).
+Nessun IP pubblico assegnato a questa VM: deve essere raggiungibile solo dall'IP interno di waap-proxy, mai direttamente da internet — è un principio di sicurezza, non solo di design, altrimenti il WAAP è bypassabile.
+Stack WordPress (LAMP/LEMP) installato e configurato con contenuto dimostrativo minimo, sufficiente a generare traffico HTML realistico su cui testare sia l'injection delle honey-URL sia il comportamento del modello su traffico benigno reale.
+Step 3 — VM waap-proxy
+Macchina leggermente più capiente della precedente se ospita anche l'ai-service Python (scikit-learn ha un footprint di memoria non trascurabile all'avvio). Se invece scegli di separare l'ai-service su una terza VM (vedi decisione B sotto), questa può restare piccola.
+Binario Go compilato per Linux (GOOS=linux), eseguito come servizio systemd con restart automatico — coerente con quanto avevi già impostato prima.
+Se l'ai-service gira sulla stessa VM: containerizzato con Docker (hai già il Dockerfile pronto), avviato anch'esso come servizio persistente.
+Step 4 — Firewall rules (da ricreare esplicitamente, non assunte)
+
+Qui è dove si concentra la sicurezza reale dell'architettura, va progettato con attenzione:
+
+Regola che permette al Load Balancer di raggiungere waap-proxy sulla porta pubblica (8080), da nessun'altra sorgente.
+Regola che permette a waap-proxy di raggiungere wordpress-1-vm sulla porta 80, solo dall'IP/subnet interna di waap-proxy.
+Regola che nega l'accesso al dashboard (porta 9090) da internet; se ti serve vederlo da remoto, permetti solo il tuo IP pubblico attuale (va aggiornata se il tuo IP cambia — o meglio, tunnel via SSH invece di esporre la porta).
+Nessuna regola aperta genericamente "da qualunque IP" tranne quella verso il LB sulla porta pubblica del proxy.
+Step 5 — Load Balancer
+Instance group che referenzia waap-proxy (come avevi già: instance-group-waap-proxy).
+Health check dedicato sulla porta 8080 del proxy (non su WordPress — il LB deve verificare che il proxy sia vivo, il proxy stesso si occupa di verificare/gestire il backend).
+Backend service collegato all'instance group.
+IP pubblico statico riservato per il LB (evita che cambi ad ogni ricreazione — utile perché puoi citarlo fisso in tesi, screenshot, demo).
+Facoltativo ma consigliato per la tesi: certificato SSL gestito da Google sul LB, così il traffico pubblico è HTTPS. Se salta per tempo, documentalo come lavoro futuro.
+Step 6 — Decisioni architetturali da fissare PRIMA di eseguire gli step sopra
+
+Visto che ricostruisci da zero, è il momento giusto per deciderle una volta sola, non a metà lavoro:
+
+Dove gira l'ai-service Python?
+
+Stessa VM di waap-proxy: meno risorse totali da pagare (una VM in meno accesa), latenza minima (localhost), ma VM più pesante da dimensionare.
+VM separata: più aderente al diagramma C4 con container distinti, ma una VM in più = più costo quando è accesa, e latenza di rete reale tra le due.
+
+Dato il vincolo di costo che hai appena vissuto, la mia raccomandazione pratica è stessa VM: una VM sola da tenere accesa durante i test invece di due, e la latenza in più di una VM separata non ti serve a dimostrare nulla di scientificamente rilevante per la tesi.
+
+Sistemd vs Docker per il proxy Go?
+Mantieni sistemd (leggero, nessun overhead di container su una VM già piccola). Docker resta giustificato solo per l'ai-service Python, dove le dipendenze (scikit-learn, numpy) rendono il container più comodo da gestire e riprodurre.
+
+Step 7 — Telemetria minima (resta valido dal piano precedente)
+
+Visto che ricrei tutto da zero, è il momento buono per sostituire MockTelemetry con qualcosa che scriva su file JSON strutturato via systemd/journald — zero costo aggiuntivo, e ti dà log persistenti anche se riavvii la VM, cosa che probabilmente farai spesso proprio per risparmiare.
+
+3. Ordine di lavoro consigliato, aggiornato
+Budget alert sul progetto GCP.
+VPC + subnet.
+VM wordpress-1-vm (senza IP pubblico) + setup WordPress.
+VM waap-proxy (con ai-service sulla stessa VM) + deploy binario Go + Docker per Python.
+Firewall rules, verificate una per una (prova a raggiungere WordPress direttamente dall'esterno: deve fallire).
+Load Balancer + health check + IP statico.
+Test end-to-end reale (traffico benigno passa, SQLi finisce in tarpit, honey-URL rilevata).
+TLS sul LB, se il tempo lo consente.
+Spegni le VM quando non stai testando attivamente — a differenza della prima volta, questa volta è una scelta esplicita di workflow, non una sorpresa a fine mese.
