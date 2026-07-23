@@ -122,7 +122,7 @@ def main():
     test_scores = normalize_scores(test_raw, best_bounds[0], best_bounds[1])
     
     y_pred = (test_scores > best_threshold).astype(int)
-    fpr_test, tpr_test, _ = roc_curve(y_test, test_scores)
+    fpr_test, tpr_test, thresholds_test = roc_curve(y_test, test_scores)
     test_auc = auc(fpr_test, tpr_test)
     
     print(f"      Metriche finali sul Test Set:")
@@ -168,67 +168,72 @@ def main():
     print(f"      Soglia media: {np.mean(kfold_thresholds):.4f} (Deviazione Standard: {np.std(kfold_thresholds):.4f})")
     print(f"      Recall medio: {np.mean(kfold_recalls):.4f} (Deviazione Standard: {np.std(kfold_recalls):.4f})")
     
-    print("[9/9] Generazione dei grafici di addestramento (Distribuzione e PCA pulita)...")
+    print("[9/9] Generazione dei grafici di addestramento (Distribuzione e Bar Chart)...")
     
-    # Grafico 1: Distribuzione degli score
-    train_raw_final = -best_model.decision_function(X_train)
-    train_scores_final = normalize_scores(train_raw_final, best_bounds[0], best_bounds[1])
-    
+    # --- Grafico 1: Distribuzione degli score (Semplicissimo) ---
     plt.figure(figsize=(10, 6))
-    sns.histplot(train_scores_final, bins=50, kde=True, color="darkblue")
-    plt.title("Distribuzione degli Score di Anomalia (Isolation Forest)")
-    plt.xlabel("Score Normalizzato (Valori prossimi a 1 indicano anomalia)")
-    plt.ylabel("Frequenza delle Richieste HTTP")
-    plt.grid(True, linestyle="--", alpha=0.6)
-    plt.savefig(MODELS_DIR / "distribuzione_score.png", dpi=300)
+    
+    scores_normal = test_scores[y_test == 0]
+    scores_anomalous = test_scores[y_test == 1]
+    
+    # Colori base: verde (buono), rosso (cattivo)
+    sns.histplot(scores_normal, bins=50, color="#2ecc71", alpha=0.7, label="Traffico Normale", stat="density", kde=False)
+    sns.histplot(scores_anomalous, bins=50, color="#e74c3c", alpha=0.7, label="Attacchi Reali", stat="density", kde=False)
+    
+    plt.axvline(x=best_threshold, color='black', linestyle='--', linewidth=3, label=f'Soglia di Blocco ({best_threshold:.2f})')
+    
+    plt.title("Livello di Rischio Assegnato dal Modello (Test Set)", fontsize=14)
+    plt.xlabel("Punteggio di Rischio (0 = Totalmente Sicuro, 1 = Attacco Certo)", fontsize=12)
+    plt.ylabel("Quantità di richieste", fontsize=12)
+    plt.legend(fontsize=11)
+    plt.grid(axis='y', linestyle="--", alpha=0.4)
+    plt.savefig(MODELS_DIR / "distribuzione_score.png", dpi=300, bbox_inches='tight')
     plt.close()
 
-    # Grafico 2: Confini Decisionali con PCA (Versione Campionata e Pulita)
-    pca = PCA(n_components=2)
+    # --- Grafico 2: Esito della Classificazione (Bar Chart Intuitivo) ---
+    # Mostra brutalmente cosa viene bloccato e cosa passa.
+    normali_totali = len(scores_normal)
+    normali_bloccati = np.sum(scores_normal > best_threshold)
+    normali_passati = normali_totali - normali_bloccati
     
-    X_all_matrix = np.vstack([X_train, X_val, X_test])
-    y_all_labels = np.concatenate([np.zeros(len(X_train)), y_val, y_test])
+    attacchi_totali = len(scores_anomalous)
+    attacchi_bloccati = np.sum(scores_anomalous > best_threshold)
+    attacchi_passati = attacchi_totali - attacchi_bloccati
     
-    X_all_dense = X_all_matrix.toarray() if hasattr(X_all_matrix, 'toarray') else X_all_matrix
-    X_all_2d = pca.fit_transform(X_all_dense)
+    perc_norm_passati = (normali_passati / normali_totali) * 100
+    perc_norm_bloccati = (normali_bloccati / normali_totali) * 100
+    perc_att_passati = (attacchi_passati / attacchi_totali) * 100
+    perc_att_bloccati = (attacchi_bloccati / attacchi_totali) * 100
 
-    x_min, x_max = X_all_2d[:, 0].min() - 1, X_all_2d[:, 0].max() + 1
-    y_min, y_max = X_all_2d[:, 1].min() - 1, X_all_2d[:, 1].max() + 1
-    xx, yy = np.meshgrid(np.linspace(x_min, x_max, 100),
-                         np.linspace(y_min, y_max, 100))
-                         
-    Z_raw = -best_model.decision_function(pca.inverse_transform(np.c_[xx.ravel(), yy.ravel()]))
-    Z = normalize_scores(Z_raw, best_bounds[0], best_bounds[1])
-    Z = Z.reshape(xx.shape)
+    labels = ['Utenti Legittimi', 'Attacchi']
+    passati = [perc_norm_passati, perc_att_passati]
+    bloccati = [perc_norm_bloccati, perc_att_bloccati]
 
-    # Campionamento dei punti per evitare la saturazione visiva del grafico
-    np.random.seed(42)
-    normal_indices = np.where(y_all_labels == 0)[0]
-    anomalous_indices = np.where(y_all_labels == 1)[0]
-    
-    # Selezioniamo un numero massimo di punti leggibili a schermo
-    if len(normal_indices) > 2500:
-        normal_indices = np.random.choice(normal_indices, 2500, replace=False)
-    if len(anomalous_indices) > 1000:
-        anomalous_indices = np.random.choice(anomalous_indices, 1000, replace=False)
+    x = np.arange(len(labels))
+    width = 0.35
 
-    plt.figure(figsize=(10, 6))
-    # Sfondo sfumato dei confini decisionali dell'IA
-    plt.contourf(xx, yy, Z, cmap=plt.cm.Blues_r, alpha=0.7)
-    
-    # Plot pulito dei punti campionati
-    plt.scatter(X_all_2d[normal_indices, 0], X_all_2d[normal_indices, 1], s=20, edgecolor="k", color="royalblue", alpha=0.6, label="Traffico Legittimo")
-    plt.scatter(X_all_2d[anomalous_indices, 0], X_all_2d[anomalous_indices, 1], s=30, edgecolor="k", color="crimson", alpha=0.9, marker="X", label="Attacchi / Anomalie")
-          
-    plt.title("Confini Decisionali WAAP e Rilevamento Anomalie")
-    plt.xlabel("Componente Principale 1")
-    plt.ylabel("Componente Principale 2")
-    plt.legend(loc="upper right")
-    plt.grid(True, linestyle="--", alpha=0.3)
-    plt.savefig(MODELS_DIR / "confini_decisionali.png", dpi=300)
+    plt.figure(figsize=(9, 6))
+    bar1 = plt.bar(x - width/2, passati, width, label='Fatti Passare', color='#2ecc71')
+    bar2 = plt.bar(x + width/2, bloccati, width, label='Bloccati dal WAF', color='#e74c3c')
+
+    plt.ylabel('Percentuale (%)', fontsize=12)
+    plt.title("Azione del WAF sulle Richieste in Entrata", fontsize=14)
+    plt.xticks(x, labels, fontsize=12)
+    plt.ylim(0, 115) # Spazio per le etichette in cima
+    plt.legend(fontsize=11)
+
+    # Scrive i numeri esatti sopra le colonne
+    for b1, b2 in zip(bar1, bar2):
+        plt.text(b1.get_x() + b1.get_width()/2., b1.get_height() + 1.5,
+                 f'{b1.get_height():.1f}%', ha='center', va='bottom', fontsize=11, fontweight='bold', color='#1e8449')
+        plt.text(b2.get_x() + b2.get_width()/2., b2.get_height() + 1.5,
+                 f'{b2.get_height():.1f}%', ha='center', va='bottom', fontsize=11, fontweight='bold', color='#922b21')
+
+    plt.grid(axis='y', linestyle="--", alpha=0.3)
+    plt.savefig(MODELS_DIR / "esito_classificazione.png", dpi=300, bbox_inches='tight')
     plt.close()
 
-    print("\nProcesso di ML completato con successo. Grafici puliti e pronti per la tesi.")
+    print("\nProcesso di ML completato con successo. Grafici semplici pronti per la tesi.")
 
 if __name__ == "__main__":
     main()
