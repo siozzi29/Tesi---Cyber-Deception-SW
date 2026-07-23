@@ -1,0 +1,62 @@
+============================================================
+  ESPERIMENTO: Training SENZA deduplicazione
+  Obiettivo: dimostrare data leakage da duplicati
+============================================================
+
+[1/6] Caricamento dataset (SENZA dedup)...
+      Righe totali mantenute: 146022 (duplicati inclusi)
+      Di cui righe duplicate: 88764 (60.8%)
+
+[2/6] Split train/val/test (stesso schema di train.py)...
+      Train:       49372 (solo normali)
+      Validation:  48324 (16457 normali, 31867 anomali)
+      Test:        48326 (16458 normali, 31868 anomali)
+
+      *** OVERLAP train↔test: 10747 righe del test set
+          sono identiche a righe viste in training (22.2%) ***
+
+[3/6] Estrazione feature...
+
+[4/6] Training Isolation Forest (stessi iperparametri ottimali)...
+      Soglia ottimizzata: 0.5803 (Recall su validation: 0.3069)
+
+[5/6] Valutazione sul test set...
+      - Precision: 0.9822
+      - Recall:    0.3115
+      - F1 Score:  0.4730
+      - AUC ROC:   0.8482
+
+[6/6] Riepilogo comparativo:
+┌─────────────────────┬──────────────────────┬──────────────────────┐
+│ Metrica             │ CON dedup (corretto) │ SENZA dedup (questo) │
+├─────────────────────┼──────────────────────┼──────────────────────┤
+│ Righe training      │ ~17.356              │                49372 │
+│ Soglia              │ 0.5908               │               0.5803 │
+│ Precision           │ 0.9872               │               0.9822 │
+│ Recall              │ 0.3749               │               0.3115 │
+│ F1 Score            │ 0.5434               │               0.4730 │
+│ AUC ROC             │ 0.7726               │               0.8482 │
+└─────────────────────┴──────────────────────┴──────────────────────┘
+
+  Il test set contiene 10747 righe (22.2%) già
+  viste in training → qualsiasi metrica è gonfiata artificialmente.
+
+  CONCLUSIONE: i duplicati causano data leakage. Le metriche
+  senza dedup NON rappresentano la capacità di generalizzazione
+  del modello su traffico reale mai visto prima.
+
+La dedup migliora Recall e F1 perché insegna al modello la struttura generale del traffico normale, non pattern iperspecifici
+L'AUC da sola è una metrica ingannevole: senza dedup sembra migliore (0.85 vs 0.77), ma le metriche operative (Recall, F1) raccontano la storia vera
+L'overlap del 22% è la prova concreta che senza dedup il test set non è indipendente — invalida la valutazione
+piegazione: due fenomeni opposti che si combattono
+1. Perché il Recall è PEGGIORE senza dedup?
+Con 49.372 campioni normali (pieni di duplicati), il modello impara a memoria pattern iperspecifici e ripetuti. Ad esempio /tienda1/autenticar.jsp con lo stesso body esatto viene visto 2.422 volte — il modello costruisce un confine decisionale molto stretto e rigido attorno a questi pattern.
+
+Quando arriva un attacco che assomiglia un po' a quelle richieste normali (es. stesso path ma parametri modificati), il modello lo classifica come normale perché il pattern di base è familiare. Il risultato è un confine meno flessibile e più recall basso.
+
+Con la dedup invece, ogni pattern compare una sola volta. Il modello impara la struttura generale del traffico normale, non i valori specifici. Riconosce meglio le deviazioni.
+
+2. Perché l'AUC è PIÙ ALTA senza dedup?
+L'AUC misura la capacità di ordinare le richieste per score (non la capacità di classificarle con una soglia precisa). Con più dati normali ripetuti, il modello assegna score molto bassi (sicuro) alle richieste normali viste molte volte, e score più alti alle anomalie. Questo ranking è artificialmente netto, ma non si traduce in recall reale quando applichi il vincolo FPR ≤ 1%.
+
+L'AUC alta senza dedup è la metrica gonfiata che ci aspettavamo — ma il gonfiamento riguarda il ranking generale, non la capacità pratica di rilevamento.
