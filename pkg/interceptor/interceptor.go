@@ -55,11 +55,11 @@ type SecurityStats struct {
 // DefaultRiskThreshold è usata solo se non viene passato un valore esplicito
 // a NewSecurityInterceptor. ATTENZIONE: deve combaciare con la soglia
 // "paranoica" calcolata in fase di training (salvata tra i file in
-// ai-service/models/, attualmente 0.5908 dopo il retraining con 40 feature —
-// Recall 37.5%, Precision 98.7%, AUC 0.7726, FPR <= 1%).
-// Se riallenate il modello e la soglia cambia, aggiornate questo valore o
-// passatelo esplicitamente via env var RISK_THRESHOLD — verificate anche in
-// quale file esatto la soglia viene persistita lato ai-service, per tenerlo
+// ai-service/models/, attualmente 0.5908 dopo il tuning degli iperparametri
+// per portare il recall dal 9.2% al 12.3% a parità di FPR 1%). Se riallenate
+// il modello e la soglia cambia, aggiornate questo valore o passatelo
+// esplicitamente via env var RISK_THRESHOLD — verificate anche in quale
+// file esatto la soglia viene persistita lato ai-service, per tenerlo
 // allineato a questo commento.
 const DefaultRiskThreshold = 0.5908
 
