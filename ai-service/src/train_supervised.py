@@ -31,12 +31,25 @@ def extract_matrix(df):
 
 def main():
     print("[1/5] Caricamento dataset...")
-    df_all = preprocess.deduplicate(
-        __import__("pandas").concat([
-            preprocess.load_csic2010(DATA_DIR / "csic2010.csv"),
-            preprocess.load_csic_ecml(DATA_DIR / "csic_ecml_final.csv"),
-        ], ignore_index=True)
-    )
+    import pandas as pd
+    df_2010 = preprocess.load_csic2010(DATA_DIR / "csic2010.csv")
+    df_ecml = preprocess.load_csic_ecml(DATA_DIR / "csic_ecml_final.csv")
+    colonne_utili = ["url", "method", "content", "content_type", "label"]
+    df_2010 = df_2010[colonne_utili]
+    df_ecml = df_ecml[colonne_utili]
+    
+    df_all = pd.concat([df_2010, df_ecml], ignore_index=True)
+    df_dedup = preprocess.deduplicate(df_all)
+    
+    # Aggiungiamo WordPress con Oversampling per equità di confronto con l'Isolation Forest
+    df_wp = preprocess.load_wordpress_traffic(DATA_DIR / "wordpress_normal.csv")
+    if not df_wp.empty:
+        df_wp = df_wp[colonne_utili]
+        df_wp_weighted = pd.concat([df_wp] * 100, ignore_index=True)
+        df_all = pd.concat([df_dedup, df_wp_weighted], ignore_index=True)
+        print(f"      Incluso dataset WP con Oversampling: {len(df_wp_weighted)} righe simulate")
+    else:
+        df_all = df_dedup
 
     # QUI la differenza chiave vs train.py: split classico 60/20/20 su TUTTO
     # il dataset (normali + anomali insieme), non solo sui normali. Il

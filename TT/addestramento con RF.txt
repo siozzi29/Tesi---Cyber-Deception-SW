@@ -1,0 +1,13 @@
+1. Il trionfo della Recall (79.6% contro 37%)
+Come avevamo previsto, la Random Forest (RF) intercetta molti più attacchi. Perché? Perché è un modello supervisionato: durante l'addestramento gli abbiamo fornito gli attacchi CSIC2010 con tanto di "etichetta", quindi ha imparato a memoria le loro firme. L'Isolation Forest (IF), invece, non aveva mai visto un attacco in vita sua durante il training!
+
+2. Il prezzo da pagare: la Precision (91.2% contro 99.2%)
+La RF ha una Recall altissima, ma la sua Precision è calata. Questo significa che la RF genera più Falsi Positivi rispetto all'IF, rischiando di bloccare traffico legittimo (circa il 9% di falsi allarmi, contro lo 0.8% dell'IF). Nel mondo dei WAF aziendali, bloccare i clienti veri è il peccato mortale assoluto. Da questo punto di vista, l'IF è molto più sicura da mettere in produzione.
+
+3. Il problema degli attacchi Zero-Day
+Questo è il punto filosofico più forte della tua tesi: la Random Forest sembra avere metriche migliori (AUC 0.93), ma è un'illusione statistica. Ha performato bene perché gli attacchi del Test Set assomigliavano molto agli attacchi del Training Set. Ma cosa succederebbe se domani mattina uscisse un attacco Zero-Day completamente nuovo e mai visto prima?
+
+La Random Forest probabilmente lo farebbe passare, perché non assomiglia a nulla che abbia studiato.
+L'Isolation Forest lo bloccherebbe, perché non le interessa che forma abbia l'attacco, le basta accorgersi che "non assomiglia al traffico normale".
+Conclusione per la Tesi
+Puoi concludere che la Random Forest è eccellente se usata come "Antivirus a firme" classico, ma l'Isolation Forest è nettamente superiore per l'architettura ibrida WAAP che hai progettato, perché minimizza i disservizi agli utenti (Precision del 99%) e lascia il compito di fermare gli attacchi mirati/sfuggenti al sistema di Cyber Deception (Honey Token).
