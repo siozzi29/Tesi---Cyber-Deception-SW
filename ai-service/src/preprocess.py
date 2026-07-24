@@ -78,6 +78,24 @@ def load_csic_ecml(path: str) -> pd.DataFrame:
     return out
 
 
+def load_wordpress_traffic(path: str) -> pd.DataFrame:
+    """Carica il traffico legittimo catturato dal nostro crawler locale."""
+    try:
+        df = pd.read_csv(path, dtype=str, keep_default_na=False)
+        out = pd.DataFrame({
+            "url": df["url"],
+            "method": df["method"],
+            "content": df["content"],
+            "content_type": df["content_type"],
+            "label": df["label"].astype(int),
+        })
+        out["source_dataset"] = "wordpress_local"
+        return out
+    except FileNotFoundError:
+        print(f"[preprocess] Dataset WordPress locale non trovato in {path}. Verrà ignorato.")
+        return pd.DataFrame()
+
+
 def deduplicate(df: pd.DataFrame) -> pd.DataFrame:
     """CSIC2010 è generato automaticamente e contiene molte richieste
     quasi-identiche (es. ogni GET con query string è seguito da un POST

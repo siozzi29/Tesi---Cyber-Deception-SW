@@ -43,6 +43,17 @@ def main():
     df_all = pd.concat([df_2010, df_ecml], ignore_index=True)
     df_dedup = preprocess.deduplicate(df_all)
     
+    # FIX: DATA IMBALANCE (Per la tesi!)
+    # Se metti 28 richieste WP insieme a 17.000 richieste CSIC, l'AI vede WP come lo 0.16% dei dati.
+    # L'Isolation Forest, per definizione, isola ciò che è raro (0.16% = Anomalia!).
+    # Dobbiamo fare "Oversampling" (duplicare il traffico WP) DOPO la deduplicazione per dargli peso.
+    df_wp = preprocess.load_wordpress_traffic(DATA_DIR / "wordpress_normal.csv")
+    if not df_wp.empty:
+        df_wp = df_wp[colonne_utili]
+        df_wp_weighted = pd.concat([df_wp] * 100, ignore_index=True) # Oversampling 100x
+        df_dedup = pd.concat([df_dedup, df_wp_weighted], ignore_index=True)
+        print(f"      Incluso dataset WP con Oversampling: {len(df_wp_weighted)} righe simulate")
+    
     print(f"[2/9] Creazione split a 3 vie (Random State 42)...")
     df_normal = df_dedup[df_dedup["label"] == 0]
     df_anomalous = df_dedup[df_dedup["label"] == 1]
@@ -94,9 +105,16 @@ def main():
         # Scikit-Learn decision_function: positivo = normale, negativo = anomalo.
         # Invertiamo il segno per avere una logica in cui rischio alto = maggiore anomalia.
         train_raw = -model.decision_function(X_train)
-        min_bound, max_bound = float(train_raw.min()), float(train_raw.max())
-        
         val_raw = -model.decision_function(X_val)
+
+        # FIX: Se usassimo max_bound dal solo training set (tutto traffico normale), 
+        # spalmeremmo il traffico normale su tutto lo spettro [0, 1]. Includendo 
+        # le anomalie di X_val nel calcolo del massimo, le richieste normali 
+        # rimarranno confinate a valori molto bassi (es. 0.1 - 0.2), mentre gli 
+        # attacchi schizzeranno verso lo 0.9 - 1.0.
+        min_bound = float(min(train_raw.min(), val_raw.min()))
+        max_bound = float(val_raw.max())
+        
         val_scores = normalize_scores(val_raw, min_bound, max_bound)
         
         # Ricerca della soglia su Validation con target FPR <= 0.01
@@ -154,9 +172,11 @@ def main():
         kf_model.fit(X_t)
         
         kf_t_raw = -kf_model.decision_function(X_t)
-        kf_min, kf_max = kf_t_raw.min(), kf_t_raw.max()
-        
         kf_v_raw = -kf_model.decision_function(X_v)
+        
+        kf_min = float(min(kf_t_raw.min(), kf_v_raw.min()))
+        kf_max = float(kf_v_raw.max())
+        
         kf_v_scores = normalize_scores(kf_v_raw, kf_min, kf_max)
         
         fpr, tpr, ths = roc_curve(y_v, kf_v_scores)
