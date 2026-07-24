@@ -54,7 +54,7 @@ type HTTPAIClient struct {
 // IMPORTANTE sul vincolo di latenza <2ms: quel vincolo copre l'overhead
 // PURO del proxy (routing, buffering, injection) sul traffico che NON deve
 // aspettare l'IA — non la chiamata sincrona a FastAPI, che ha un budget di
-// latenza SEPARATO e volutamente più ampio (qui di default 20ms). È un
+// latenza SEPARATO e volutamente più ampio (qui di default 5s). È un
 // trade-off esplicito latenza/accuratezza: ogni richiesta scorata in modo
 // sincrono paga questo costo aggiuntivo. Se in futuro serve rispettare i
 // <2ms anche per il traffico che passa dall'IA, l'unica strada reale è

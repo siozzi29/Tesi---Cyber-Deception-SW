@@ -56,8 +56,8 @@ func main() {
 		log.Printf("[WARN] AI_SERVICE_ENDPOINT non impostata, uso fallback: %s", aiEndpoint)
 	}
 	// Default aggiornato: vedi commento in aiclient.NewHTTPAIClient sul
-	// trade-off latenza/accuratezza (non è più 150ms, ora 20ms di default).
-	aiTimeoutMs := 0 // 0 => aiclient usa il suo default interno (20ms)
+	// trade-off latenza/accuratezza (non è più 150ms, ora 5s di default).
+	aiTimeoutMs := 0 // 0 => aiclient usa il suo default interno (5s)
 	if v := os.Getenv("AI_TIMEOUT_MS"); v != "" {
 		parsed, err := strconv.Atoi(v)
 		if err != nil {

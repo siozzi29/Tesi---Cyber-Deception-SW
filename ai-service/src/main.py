@@ -28,6 +28,9 @@ async def lifespan(app: FastAPI):
     """
     Gestisce il ciclo di vita dell'applicazione.
     Carica Isolation Forest, bounds e soglia di rischio solo all'avvio del worker.
+    NOTA: scaler.joblib e feature_order.joblib presenti in models/ sono artefatti
+    di training (non vengono usati in inference, la normalizzazione è integrata
+    in normalize_scores di train.py e applicata tramite score_bounds in produzione).
     """
     base_dir = Path(__file__).resolve().parent.parent
     models_dir = base_dir / "models"

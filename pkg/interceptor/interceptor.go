@@ -184,7 +184,7 @@ func (i *SecurityInterceptor) ServeHTTP(w http.ResponseWriter, r *http.Request) 
 			Timestamp: time.Now(),
 			Path:      r.URL.Path,
 			Method:    r.Method,
-			RiskScore: 0,
+			RiskScore: -1,
 			IsHoney:   false,
 			Routed:    "ai_error",
 		})
