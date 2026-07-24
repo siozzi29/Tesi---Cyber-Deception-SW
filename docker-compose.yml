@@ -1,6 +1,5 @@
-
-
 services:
+
   ai-service:
     build:
       context: ./ai-service
@@ -19,9 +18,13 @@ services:
     container_name: waap_reverse_proxy
     ports:
       - "8080:8080"
+      - "9090:9090"
     environment:
       - AI_SERVICE_ENDPOINT=http://ai-service:8000/score
-      - WORDPRESS_BACKEND=http://host.docker.internal:80
+      - WORDPRESS_BACKEND=http://34.53.145.249
+      - LISTEN_ADDR=:8080
+      - DASHBOARD_ADDR=:9090
+      - RISK_THRESHOLD=0.75
     depends_on:
       - ai-service
     networks:
