@@ -200,7 +200,7 @@ def main():
     sns.histplot(scores_normal, bins=50, color="#2ecc71", alpha=0.7, label="Traffico Normale", stat="density", kde=False)
     sns.histplot(scores_anomalous, bins=50, color="#e74c3c", alpha=0.7, label="Attacchi Reali", stat="density", kde=False)
     
-    plt.axvline(x=best_threshold, color='black', linestyle='--', linewidth=3, label=f'Soglia di Blocco ({best_threshold:.2f})')
+    plt.axvline(x=best_threshold, color='black', linestyle='--', linewidth=3, label=f'Soglia di Blocco ({best_threshold:.4f})')
     
     plt.title("Livello di Rischio Assegnato dal Modello (Test Set)", fontsize=14)
     plt.xlabel("Punteggio di Rischio (0 = Totalmente Sicuro, 1 = Attacco Certo)", fontsize=12)
