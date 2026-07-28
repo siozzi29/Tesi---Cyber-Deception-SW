@@ -1,0 +1,37 @@
+# Contesto del Progetto: WAAP basato su Intelligenza Artificiale e Cyber Deception
+
+## 1. Architettura di Base
+- **Ruolo Centrale**: Un Reverse Proxy ad alte prestazioni scritto in Go.
+- **Flusso del traffico**: Il proxy si frappone tra internet e il backend (un sito WordPress). Riceve le richieste HTTP, le valuta e decide se inoltrarle al web server o bloccarle inviandole in una Tarpit (prigione).
+- **Modulo AI**: Un microservizio asincrono scritto in Python (FastAPI) che riceve i dati grezzi dal proxy e calcola un "Risk Score" da 0.0 a 1.0.
+
+## 2. Intelligenza Artificiale e Feature Engineering
+- **Modello di Base**: Isolation Forest (algoritmo di Machine Learning non supervisionato per l'anomaly detection).
+- **Estrazione Features**: Per evitare disallineamenti tra l'addestramento e la produzione (*training-serving skew*), le feature matematiche vengono calcolate esclusivamente partendo da 4 campi HTTP grezzi e sempre presenti: `URL`, `Method`, `Body`, `Content-Type`.
+- **Evoluzione Dimensionale**: Siamo passati da 27 a **40 features estrattive**.
+- **Nuove Features di Evasione**: Sono stati implementati rilevatori specifici per le tecniche di evasione WAF più comuni:
+  - Entropia di Shannon (su URL, Path e Query) per rilevare offuscamento.
+  - Rilevamento del Double Encoding (es. `%2500`) e dei Null-Byte.
+  - Discrepanze strutturali logiche (es. `Content-Type` assente ma Body presente).
+
+## 3. Dataset e Risoluzione del Data Imbalance
+- **Dataset Storici**: Utilizzati i dataset standard di riferimento CSIC 2010 e la variante ECML.
+- **Data Cleaning**: È stata applicata una rigorosa deduplicazione (eliminando oltre il 60% dei dati) per prevenire il *data leakage* e l'overfitting.
+- **Iniezione Dati Reali (WordPress)**: Per calare il WAF nel suo ambiente di produzione reale, è stato sviluppato un crawler per raccogliere traffico normale su un'istanza WordPress.
+- **Risoluzione Sbilanciamento (Oversampling)**: Essendo i log di WordPress pochissimi rispetto ai dataset CSIC, l'Isolation Forest li classificava come "anomalie" puramente perché rari. È stata applicata una tecnica di **Oversampling (pesatura 100x)** del traffico WordPress nel train set. In questo modo il modello ha imparato che i path di WordPress sono traffico legittimo dominante.
+
+## 4. Metriche Finali e Soglia di Sicurezza
+- **Nuova Soglia Operativa**: La ricalibrazione dello spazio dimensionale a 40 feature ha prodotto una nuova soglia di blocco ottimizzata a **0.4435** (FPR <= 0.01).
+- **Precisione (Falsi Positivi)**: 99.25%. Il WAF è quasi perfetto nel non bloccare mai utenti legittimi, requisito vitale in produzione.
+- **Recall (Rilevamento)**: 37.3%. Il primo scudo AI blocca oltre 1 attacco su 3 prima ancora di analizzarne la logica profonda.
+- **AUC ROC**: 0.74, dimostrando una solida capacità intrinseca di distinguere la distribuzione normale da quella anomala.
+
+## 5. Il Secondo Livello: Cyber Deception e Feedback Loop
+- **Infiltrazione Attiva**: Il proxy non si limita a osservare. Nelle pagine HTML restituite all'utente legittimo, inietta logiche di Deception (es. *HoneyTokens* e link esca invisibili).
+- **Tarpit e Determinismo**: I bot sofisticati o gli scanner che sfuggono al Recall del 37% dell'AI finiscono per interagire con le esche. Chi tocca l'esca viene istantaneamente marchiato come minaccia certa (100% Precision, zero falsi positivi) e confinato nella Tarpit.
+- **Sinergia (Continuous Learning)**: L'honeypot funziona da oracolo ("Ground Truth"). Raccogliendo i log degli attacchi intrappolati dall'honeypot, in futuro sarà possibile effettuare un passaggio a modelli di Machine Learning **Supervisionati** (es. Random Forest), innalzando drasticamente anche la metrica del Recall.
+
+## 6. Deploy in Produzione
+- L'intera soluzione è stata containerizzata con Docker (Docker Compose).
+- Distribuita nel cloud su istanze **Google Cloud Platform (GCP)**.
+- Posta attivamente a difesa di un backend WordPress accessibile pubblicamente.

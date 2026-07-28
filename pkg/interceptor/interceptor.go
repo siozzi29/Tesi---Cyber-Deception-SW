@@ -158,7 +158,7 @@ func (i *SecurityInterceptor) ServeHTTP(w http.ResponseWriter, r *http.Request) 
 		})
 		i.recordEvent(SecurityEvent{
 			Timestamp: time.Now(),
-			Path:      r.URL.Path,
+			Path:      r.URL.RequestURI(),
 			Method:    r.Method,
 			RiskScore: 1.0,
 			IsHoney:   true,
@@ -182,7 +182,7 @@ func (i *SecurityInterceptor) ServeHTTP(w http.ResponseWriter, r *http.Request) 
 		})
 		i.recordEvent(SecurityEvent{
 			Timestamp: time.Now(),
-			Path:      r.URL.Path,
+			Path:      r.URL.RequestURI(),
 			Method:    r.Method,
 			RiskScore: -1,
 			IsHoney:   false,
@@ -200,7 +200,7 @@ func (i *SecurityInterceptor) ServeHTTP(w http.ResponseWriter, r *http.Request) 
 		})
 		i.recordEvent(SecurityEvent{
 			Timestamp: time.Now(),
-			Path:      r.URL.Path,
+			Path:      r.URL.RequestURI(),
 			Method:    r.Method,
 			RiskScore: score,
 			IsHoney:   false,
@@ -213,7 +213,7 @@ func (i *SecurityInterceptor) ServeHTTP(w http.ResponseWriter, r *http.Request) 
 		})
 		i.recordEvent(SecurityEvent{
 			Timestamp: time.Now(),
-			Path:      r.URL.Path,
+			Path:      r.URL.RequestURI(),
 			Method:    r.Method,
 			RiskScore: score,
 			IsHoney:   false,

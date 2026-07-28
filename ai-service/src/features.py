@@ -26,49 +26,61 @@ from collections import Counter
 from urllib.parse import urlparse, parse_qsl
 
 FEATURE_NAMES = [
-    "url_length",
-    "path_length",
-    "query_length",
-    "num_query_params",
-    "avg_query_param_len",
-    "max_query_param_len",
-    "num_path_segments",
-    "num_digits_url",
-    "num_special_chars_url",
-    "special_char_ratio_url",
-    "url_entropy",
-    "path_traversal_tokens_url",
-    "sql_keyword_count_url",
-    "xss_token_count_url",
-    "method_code",
-    "content_type_code",
-    "has_body",
-    "body_length",
-    "num_body_params",
-    "avg_body_param_len",
-    "num_digits_body",
-    "num_special_chars_body",
-    "special_char_ratio_body",
-    "body_entropy",
-    "path_traversal_tokens_body",
-    "sql_keyword_count_body",
-    "xss_token_count_body",
-    # --- Nuove feature: evasion/encoding su URL e path ---
-    "ratio_encoded_chars_url",
-    "has_double_encoding",
-    "has_null_byte",
-    "num_duplicate_params",
-    "path_entropy",
-    "query_entropy",
-    "max_path_segment_len",
-    "num_uppercase_in_query",
-    # --- Nuove feature: body ---
-    "body_to_url_length_ratio",
-    "has_base64_pattern",
-    "num_semicolons_body",
-    # --- Nuove feature: coerenza strutturale richiesta ---
-    "method_body_mismatch",
-    "content_type_body_mismatch",
+    # --- 1. Analisi Strutturale e Dimensionale (URL e Query) ---
+    "url_length",                # Lunghezza totale dell'URL
+    "path_length",               # Lunghezza del percorso (es. /wp-content/)
+    "query_length",              # Lunghezza della stringa di query (dopo il ?)
+    "num_query_params",          # Numero totale di parametri nella query
+    "avg_query_param_len",       # Lunghezza media dei parametri (rileva payload massivi)
+    "max_query_param_len",       # Lunghezza massima di un singolo parametro
+    "num_path_segments",         # Numero di cartelle nel percorso (es. /a/b/c = 3)
+    
+    # --- 2. Analisi Tipografica (Caratteri speciali nell'URL) ---
+    "num_digits_url",            # Quantità di numeri nell'URL
+    "num_special_chars_url",     # Quantità totale di caratteri speciali nell'URL
+    "special_char_ratio_url",    # Rapporto tra caratteri speciali e normali (alto in XSS/SQLi)
+    
+    # --- 3. Analisi Entropica (Rilevamento Offuscamento) ---
+    "url_entropy",               # Disordine dell'URL (alta entropia = offuscamento/crittografia)
+    
+    # --- 4. Pattern Malevoli Noti (Firme comportamentali nell'URL) ---
+    "path_traversal_tokens_url", # Conteggio token come ../ o %2e%2e/
+    "sql_keyword_count_url",     # Conteggio keyword SQL (es. UNION, SELECT, OR 1=1)
+    "xss_token_count_url",       # Conteggio payload XSS (es. <script>, alert)
+    
+    # --- 6. Analisi del Payload (Body della richiesta) ---
+    "method_code",               # Verbo HTTP (GET=0, POST=1, ecc.)
+    "content_type_code",         # Formato dati (JSON, Form, XML)
+    "has_body",                  # Flag booleano (0 o 1) se la richiesta ha un corpo
+    "body_length",               # Dimensione totale del body in byte
+    "num_body_params",           # Numero di parametri se il body è form-urlencoded
+    "avg_body_param_len",        # Lunghezza media dei parametri del body
+    "num_digits_body",           # Quantità di numeri nel body
+    "num_special_chars_body",    # Quantità di caratteri speciali nel body
+    "special_char_ratio_body",   # Rapporto caratteri speciali/normali nel body
+    "body_entropy",              # Entropia del body (alta per Web Shell o file binari anomali)
+    "path_traversal_tokens_body",# Conteggio token path traversal nel body
+    "sql_keyword_count_body",    # Conteggio keyword SQL nel body
+    "xss_token_count_body",      # Conteggio payload XSS nel body
+    
+    # --- 5. Tecniche di Evasione Avanzate (WAF Bypass) ---
+    "ratio_encoded_chars_url",   # Percentuale URL-encoded (abuso = evasione filtri)
+    "has_double_encoding",       # Rileva doppio encoding (es. %2527) tipico di WAF bypass
+    "has_null_byte",             # Rileva %00 usato per troncare le stringhe in C/PHP
+    "num_duplicate_params",      # Parametri ripetuti (HTTP Parameter Pollution)
+    "path_entropy",              # Entropia calcolata solo sul percorso
+    "query_entropy",             # Entropia calcolata solo sulla query string
+    "max_path_segment_len",      # Lunghezza del segmento di path più lungo
+    "num_uppercase_in_query",    # Anomalie nell'uso delle maiuscole (evasione case-sensitive)
+    
+    # --- Ulteriori feature avanzate sul Body ---
+    "body_to_url_length_ratio",  # Rapporto dimensionale tra Body e URL
+    "has_base64_pattern",        # Rileva stringhe Base64 (spesso usate per iniettare shell)
+    "num_semicolons_body",       # Abuso di punti e virgola (indica Command Injection)
+    
+    # --- 7. Coerenza Strutturale del Protocollo ---
+    "method_body_mismatch",      # Richieste GET ma con un Body (sintassi illecita)
+    "content_type_body_mismatch",# Body presente ma Content-Type assente (o viceversa)
 ]
 
 # Caratteri considerati "sicuri"/attesi in un URL ben formato (RFC 3986
