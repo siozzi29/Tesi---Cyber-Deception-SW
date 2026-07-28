@@ -149,22 +149,6 @@ func (i *SecurityInterceptor) Snapshot() (SecurityStats, []SecurityEvent) {
 }
 
 func (i *SecurityInterceptor) ServeHTTP(w http.ResponseWriter, r *http.Request) {
-	// 0. Whitelist di Base per asset critici di WordPress
-	if r.URL.Path == "/wp-admin/load-styles.php" || r.URL.Path == "/wp-admin/load-scripts.php" {
-		i.logTelemetry(r, 0.0, false)
-		i.serveWithInjection(w, r, func(writer http.ResponseWriter, req *http.Request) {
-			i.router.Forward(writer, req)
-		})
-		i.recordEvent(SecurityEvent{
-			Timestamp: time.Now(),
-			Path:      r.URL.RequestURI(),
-			Method:    r.Method,
-			RiskScore: 0.0,
-			IsHoney:   false,
-			Routed:    "forwarded",
-		})
-		return
-	}
 	// 1. Controllo Deterministico (Cyber Deception)
 	if i.injector != nil && i.injector.IsHoneyURL(r.URL.Path) {
 		log.Printf("[!] Attacco rilevato (Honey-URL): %s", r.URL.Path)

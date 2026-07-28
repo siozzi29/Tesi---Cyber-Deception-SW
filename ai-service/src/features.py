@@ -263,29 +263,40 @@ def extract_features(url: str, method: str, content: str, content_type: str) -> 
     path = parsed.path or ""
     query = parsed.query or ""
 
-    query_params = parse_qsl(query, keep_blank_values=True)
+    # =========================================================================
+    # DATA SCIENTIST FEATURE ENGINEERING: Normalizzazione Asset Loader (WP)
+    # Gli script di aggregazione CSS/JS cambiano i parametri costantemente,
+    # causando fluttuazioni di centinaia di byte (generando Outlier statistici).
+    # "Congeliamo" la lunghezza per l'analisi del comportamento, ma manteniamo
+    # l'URL originale per il pattern matching di SQLi e XSS!
+    # =========================================================================
+    is_asset_loader = ("load-styles.php" in path or "load-scripts.php" in path)
+    
+    struct_url = path if is_asset_loader else url
+    struct_query = "" if is_asset_loader else query
+
+    query_params = parse_qsl(struct_query, keep_blank_values=True)
     query_param_lens = [len(v) for _, v in query_params]
 
     # I parametri del body si interpretano solo se il content-type dichiara
-    # form-urlencoded: su JSON/multipart il parsing key=value non ha senso,
-    # e forzarlo introdurrebbe rumore invece di segnale.
+    # form-urlencoded: su JSON/multipart il parsing key=value non ha senso.
     body_params = []
     if content and "form-urlencoded" in content_type.lower():
         body_params = parse_qsl(content, keep_blank_values=True)
     body_param_lens = [len(v) for _, v in body_params]
 
     features = [
-        len(url),
+        len(struct_url),
         len(path),
-        len(query),
+        len(struct_query),
         len(query_params),
         (sum(query_param_lens) / len(query_param_lens)) if query_param_lens else 0.0,
         max(query_param_lens) if query_param_lens else 0.0,
         len([seg for seg in path.split("/") if seg]),
-        sum(ch.isdigit() for ch in url),
-        sum(1 for ch in url if not _SAFE_URL_CHARS.match(ch)),
-        _special_char_ratio(url),
-        _entropy(url),
+        sum(ch.isdigit() for ch in struct_url),
+        sum(1 for ch in struct_url if not _SAFE_URL_CHARS.match(ch)),
+        _special_char_ratio(struct_url),
+        _entropy(struct_url),
         _count_tokens(url, _TRAVERSAL_TOKENS),
         _count_tokens(url, _SQL_KEYWORDS),
         _count_tokens(url, _XSS_TOKENS),
