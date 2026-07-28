@@ -24,7 +24,7 @@ services:
       - WORDPRESS_BACKEND=http://34.53.145.249
       - LISTEN_ADDR=:8080
       - DASHBOARD_ADDR=:9090
-      - RISK_THRESHOLD=0.4435
+      - RISK_THRESHOLD=1.01
     depends_on:
       - ai-service
     networks:

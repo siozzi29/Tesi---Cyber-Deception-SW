@@ -81,6 +81,12 @@ FEATURE_NAMES = [
     # --- 7. Coerenza Strutturale del Protocollo ---
     "method_body_mismatch",      # Richieste GET ma con un Body (sintassi illecita)
     "content_type_body_mismatch",# Body presente ma Content-Type assente (o viceversa)
+    
+    # --- 8. Nuove feature: Command Injection e Anomalie Estensioni ---
+    "os_cmd_token_count_url",    # Rileva comandi Linux/Windows nell'URL (es. rm, wget)
+    "os_cmd_token_count_body",   # Rileva comandi Linux/Windows nel body
+    "suspicious_ext_count_url",  # Estensioni file pericolose (.bak, .sh) nell'URL
+    "suspicious_ext_count_body", # Estensioni file pericolose nel body
 ]
 
 # Caratteri considerati "sicuri"/attesi in un URL ben formato (RFC 3986
@@ -116,6 +122,15 @@ _XSS_TOKENS = [
 ]
 _TRAVERSAL_TOKENS = ["../", "..%2f", "%2e%2e", "..\\", "%2e%2e%2f"]
 
+_OS_CMD_TOKENS = [
+    "rm -", "wget ", "curl ", "ping ", "nmap ", "cat /etc", "/bin/sh", 
+    "/bin/bash", "cmd.exe", "powershell", "whoami", "ipconfig", "ifconfig", "net user"
+]
+
+_SUSPICIOUS_EXT_TOKENS = [
+    ".bak", ".old", ".swp", ".inc", ".log", ".sh", ".sql", ".ini", ".conf", ".jsp"
+]
+
 # --- Pattern per le nuove feature di evasion/encoding ---
 _ENCODED_CHAR_RE = re.compile(r"%[0-9A-Fa-f]{2}")
 _DOUBLE_ENCODED_RE = re.compile(r"%25[0-9A-Fa-f]{2}")
@@ -137,9 +152,20 @@ def _entropy(s: str) -> float:
     return -sum((c / n) * math.log2(c / n) for c in counts.values())
 
 
+from urllib.parse import unquote_plus
+
 def _count_tokens(haystack: str, tokens: list) -> int:
-    h = haystack.lower()
-    return sum(h.count(t) for t in tokens)
+    # Decodifichiamo URL-Encoding e trasformiamo i + in spazi (es. %20 o + diventano spazio)
+    h = unquote_plus(haystack).lower()
+    
+    # 1. Contiamo i token statici esatti
+    count = sum(h.count(t) for t in tokens)
+    
+    # 2. Aggiungiamo Regex per pattern dinamici (es. OR 590=590, OR 'a'='a')
+    # \s+ matcha spazi multipli, [\w\d']+ matcha lettere, numeri o apici singoli
+    count += len(re.findall(r"or\s+[\w\d']+\s*=\s*[\w\d']+", h))
+    
+    return count
 
 
 def _special_char_ratio(s: str) -> float:
@@ -292,6 +318,12 @@ def extract_features(url: str, method: str, content: str, content_type: str) -> 
         # --- Nuove feature: coerenza strutturale richiesta ---
         1.0 if method in ("GET", "HEAD") and content else 0.0,
         1.0 if bool(content_type) != bool(content) else 0.0,
+        
+        # --- 8. Nuove feature: Command Injection e Anomalie Estensioni ---
+        _count_tokens(url, _OS_CMD_TOKENS),
+        _count_tokens(content, _OS_CMD_TOKENS),
+        _count_tokens(url, _SUSPICIOUS_EXT_TOKENS),
+        _count_tokens(content, _SUSPICIOUS_EXT_TOKENS),
     ]
     assert len(features) == len(FEATURE_NAMES), "features e FEATURE_NAMES devono avere la stessa lunghezza"
     return features

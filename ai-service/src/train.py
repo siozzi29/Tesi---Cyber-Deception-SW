@@ -225,6 +225,39 @@ def main():
     perc_att_passati = (attacchi_passati / attacchi_totali) * 100
     perc_att_bloccati = (attacchi_bloccati / attacchi_totali) * 100
 
+    print("\n      --- BREAKDOWN DETTAGLIATO (Richiesta da appunti) ---")
+    print(f"      TRAFFICO LEGITTIMO ({normali_totali} richieste totali nel test set):")
+    print(f"      - Fatti Passare (Corretti): {normali_passati} ({perc_norm_passati:.2f}%)")
+    print(f"      - Bloccati per Errore (Falsi Positivi): {normali_bloccati} ({perc_norm_bloccati:.2f}%)")
+    print("")
+    print(f"      ATTACCHI ({attacchi_totali} richieste totali nel test set):")
+    print(f"      - Bloccati dal WAF (Recall/Corretti): {attacchi_bloccati} ({perc_att_bloccati:.2f}%)")
+    print(f"      - Fatti Passare (Falsi Negativi/Buchi): {attacchi_passati} ({perc_att_passati:.2f}%)")
+    print("      --------------------------------------------------")
+
+    # NOVITA': Stampa a video quali attacchi esatti stanno passando (Falsi Negativi)
+    if attacchi_passati > 0:
+        print("\n      [!] IDENTIFICAZIONE DEGLI ATTACCHI SFUGGITI (Primi 15):")
+        # Ricaviamo il sotto-dataframe degli attacchi nel test set
+        df_test_anomalous = df_test[df_test["label"] == 1]
+        
+        # Gli attacchi che sono passati sono quelli in cui score <= best_threshold
+        buchi_mask = scores_anomalous <= best_threshold
+        df_buchi = df_test_anomalous[buchi_mask]
+        
+        i = 0
+        for _, row in df_buchi.iterrows():
+            if i >= 15:
+                break
+            # Stampiamo metodo e url troncato a 100 caratteri
+            url_str = str(row['url'])
+            if len(url_str) > 100:
+                url_str = url_str[:97] + "..."
+            print(f"      - {row['method']} {url_str}")
+            i += 1
+    
+    print("      --------------------------------------------------")
+
     labels = ['Utenti Legittimi', 'Attacchi']
     passati = [perc_norm_passati, perc_att_passati]
     bloccati = [perc_norm_bloccati, perc_att_bloccati]
