@@ -1,6 +1,8 @@
 package interceptor
 
 import (
+	"bytes"
+	"io"
 	"log"
 	"net/http"
 	"sync"
@@ -32,12 +34,14 @@ type Telemetry interface {
 // SecurityEvent è l'unità d'informazione usata dal dashboard per mostrare
 // gli ultimi eventi analizzati dal proxy.
 type SecurityEvent struct {
-	Timestamp time.Time `json:"timestamp"`
-	Path      string    `json:"path"`
-	Method    string    `json:"method"`
-	RiskScore float64   `json:"risk_score"`
-	IsHoney   bool      `json:"is_honey"`
-	Routed    string    `json:"routed"`
+	Timestamp   time.Time `json:"timestamp"`
+	Path        string    `json:"path"`
+	Method      string    `json:"method"`
+	RiskScore   float64   `json:"risk_score"`
+	IsHoney     bool      `json:"is_honey"`
+	Routed      string    `json:"routed"`
+	Body        string    `json:"body"`
+	ContentType string    `json:"content_type"`
 }
 
 type SecurityStats struct {
@@ -88,7 +92,7 @@ func NewSecurityInterceptor(ai AIClient, inj URLInjector, r Router, t Telemetry,
 		router:        r,
 		telemetry:     t,
 		riskThreshold: riskThreshold,
-		maxEvents:     50,
+		maxEvents:     2000,
 	}
 }
 
@@ -149,6 +153,27 @@ func (i *SecurityInterceptor) Snapshot() (SecurityStats, []SecurityEvent) {
 }
 
 func (i *SecurityInterceptor) ServeHTTP(w http.ResponseWriter, r *http.Request) {
+	// 0. Estrazione Identità (Auth-Bypass Check)
+	isAuthenticated := false
+	for _, cookie := range r.Cookies() {
+		if len(cookie.Name) >= 20 && cookie.Name[:20] == "wordpress_logged_in_" {
+			isAuthenticated = true
+			break
+		}
+	}
+
+	// 0.5 Cattura del Body e Content-Type per il Dashboard / Training
+	// Leggiamo fino a 1MB per non esaurire la memoria, poi rimpiazziamo r.Body.
+	var reqBody string
+	if r.Body != nil {
+		raw, err := io.ReadAll(io.LimitReader(r.Body, 1<<20)) // 1MB max
+		if err == nil {
+			reqBody = string(raw)
+			r.Body = io.NopCloser(bytes.NewBuffer(raw))
+		}
+	}
+	reqContentType := r.Header.Get("Content-Type")
+
 	// 1. Controllo Deterministico (Cyber Deception)
 	if i.injector != nil && i.injector.IsHoneyURL(r.URL.Path) {
 		log.Printf("[!] Attacco rilevato (Honey-URL): %s", r.URL.Path)
@@ -157,12 +182,34 @@ func (i *SecurityInterceptor) ServeHTTP(w http.ResponseWriter, r *http.Request) 
 			i.router.TarpitAndTrap(writer, req)
 		})
 		i.recordEvent(SecurityEvent{
-			Timestamp: time.Now(),
-			Path:      r.URL.RequestURI(),
-			Method:    r.Method,
-			RiskScore: 1.0,
-			IsHoney:   true,
-			Routed:    "trapped",
+			Timestamp:   time.Now(),
+			Path:        r.URL.RequestURI(),
+			Method:      r.Method,
+			RiskScore:   1.0,
+			IsHoney:     true,
+			Routed:      "trapped",
+			Body:        reqBody,
+			ContentType: reqContentType,
+		})
+		return
+	}
+
+	// 1.5 Whitelist per utenti autenticati (Bypass AI)
+	if isAuthenticated {
+		log.Printf("[!] Bypass IA per utente autenticato: %s", r.URL.Path)
+		i.logTelemetry(r, 0.0, false)
+		i.serveWithInjection(w, r, func(writer http.ResponseWriter, req *http.Request) {
+			i.router.Forward(writer, req)
+		})
+		i.recordEvent(SecurityEvent{
+			Timestamp:   time.Now(),
+			Path:        r.URL.RequestURI(),
+			Method:      r.Method,
+			RiskScore:   0.0,
+			IsHoney:     false,
+			Routed:      "forwarded",
+			Body:        reqBody,
+			ContentType: reqContentType,
 		})
 		return
 	}
@@ -181,12 +228,14 @@ func (i *SecurityInterceptor) ServeHTTP(w http.ResponseWriter, r *http.Request) 
 			i.router.Forward(writer, req)
 		})
 		i.recordEvent(SecurityEvent{
-			Timestamp: time.Now(),
-			Path:      r.URL.RequestURI(),
-			Method:    r.Method,
-			RiskScore: -1,
-			IsHoney:   false,
-			Routed:    "ai_error",
+			Timestamp:   time.Now(),
+			Path:        r.URL.RequestURI(),
+			Method:      r.Method,
+			RiskScore:   -1,
+			IsHoney:     false,
+			Routed:      "ai_error",
+			Body:        reqBody,
+			ContentType: reqContentType,
 		})
 		return
 	}
@@ -199,12 +248,14 @@ func (i *SecurityInterceptor) ServeHTTP(w http.ResponseWriter, r *http.Request) 
 			i.router.TarpitAndTrap(writer, req)
 		})
 		i.recordEvent(SecurityEvent{
-			Timestamp: time.Now(),
-			Path:      r.URL.RequestURI(),
-			Method:    r.Method,
-			RiskScore: score,
-			IsHoney:   false,
-			Routed:    "trapped",
+			Timestamp:   time.Now(),
+			Path:        r.URL.RequestURI(),
+			Method:      r.Method,
+			RiskScore:   score,
+			IsHoney:     false,
+			Routed:      "trapped",
+			Body:        reqBody,
+			ContentType: reqContentType,
 		})
 	} else {
 		i.logTelemetry(r, score, false)
@@ -212,12 +263,14 @@ func (i *SecurityInterceptor) ServeHTTP(w http.ResponseWriter, r *http.Request) 
 			i.router.Forward(writer, req)
 		})
 		i.recordEvent(SecurityEvent{
-			Timestamp: time.Now(),
-			Path:      r.URL.RequestURI(),
-			Method:    r.Method,
-			RiskScore: score,
-			IsHoney:   false,
-			Routed:    "forwarded",
+			Timestamp:   time.Now(),
+			Path:        r.URL.RequestURI(),
+			Method:      r.Method,
+			RiskScore:   score,
+			IsHoney:     false,
+			Routed:      "forwarded",
+			Body:        reqBody,
+			ContentType: reqContentType,
 		})
 	}
 }

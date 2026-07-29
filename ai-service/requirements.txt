@@ -5,3 +5,7 @@ joblib
 fastapi
 uvicorn
 pydantic
+matplotlib
+seaborn
+requests
+beautifulsoup4

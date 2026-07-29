@@ -34,25 +34,31 @@ def normalize_scores(raw_scores, min_bound, max_bound):
     return np.clip(normalized, 0.0, 1.0)
 
 def main():
-    print("[1/9] Caricamento e preparazione dataset...")
+    print("[1/9] Caricamento e preparazione dataset (DOMAIN-SPECIFIC FINE-TUNING)...")
     df_2010 = preprocess.load_csic2010(DATA_DIR / "csic2010.csv")
     df_ecml = preprocess.load_csic_ecml(DATA_DIR / "csic_ecml_final.csv")
-    colonne_utili = ["url", "method", "content", "content_type", "label"]    # Definisci le colonne rigorose di cui hai effettivamente bisogno
-    df_2010 = df_2010[colonne_utili] # Filtra entrambi i dataframe per mantenere solo quelle colonne, scartando lingua, protocollo ecc.
-    df_ecml = df_ecml[colonne_utili]
-    df_all = pd.concat([df_2010, df_ecml], ignore_index=True)
-    df_dedup = preprocess.deduplicate(df_all)
+    colonne_utili = ["url", "method", "content", "content_type", "label"]    
     
-    # FIX: DATA IMBALANCE (Per la tesi!)
-    # Se metti 28 richieste WP insieme a 17.000 richieste CSIC, l'AI vede WP come lo 0.16% dei dati.
-    # L'Isolation Forest, per definizione, isola ciò che è raro (0.16% = Anomalia!).
-    # Dobbiamo fare "Oversampling" (duplicare il traffico WP) DOPO la deduplicazione per dargli peso.
+    df_2010 = df_2010[colonne_utili] 
+    df_ecml = df_ecml[colonne_utili]
+    df_all_csic = pd.concat([df_2010, df_ecml], ignore_index=True)
+    
+    # 1. SCARTIAMO IL TRAFFICO NORMALE CSIC (Teniamo solo gli attacchi label == 1)
+    df_csic_attacks = df_all_csic[df_all_csic["label"] == 1]
+    df_attacks_dedup = preprocess.deduplicate(df_csic_attacks)
+    
+    # 2. CARICHIAMO IL TRAFFICO WORDPRESS (L'UNICO TRAFFICO NORMALE CHE CI INTERESSA)
     df_wp = preprocess.load_wordpress_traffic(DATA_DIR / "wordpress_normal.csv")
     if not df_wp.empty:
         df_wp = df_wp[colonne_utili]
-        df_wp_weighted = pd.concat([df_wp] * 100, ignore_index=True) # Oversampling 100x
-        df_dedup = pd.concat([df_dedup, df_wp_weighted], ignore_index=True)
-        print(f"      Incluso dataset WP con Oversampling: {len(df_wp_weighted)} righe simulate")
+        # Oversampling per bilanciare la quantità di attacchi (circa 14.000)
+        df_wp_weighted = pd.concat([df_wp] * 100, ignore_index=True)
+        print(f"      Incluso dataset WP (Solo Normali) con Oversampling 100x: {len(df_wp_weighted)} righe")
+    else:
+        df_wp_weighted = pd.DataFrame(columns=colonne_utili)
+        
+    df_dedup = pd.concat([df_attacks_dedup, df_wp_weighted], ignore_index=True)
+    print(f"      Totale Dataset Ibrido (Attacchi CSIC + Normale WP): {len(df_dedup)} righe")
     
     print(f"[2/9] Creazione split a 3 vie (Random State 42)...")
     df_normal = df_dedup[df_dedup["label"] == 0]
@@ -226,18 +232,18 @@ def main():
     perc_att_bloccati = (attacchi_bloccati / attacchi_totali) * 100
 
     print("\n      --- BREAKDOWN DETTAGLIATO (Richiesta da appunti) ---")
-    print(f"      TRAFFICO LEGITTIMO ({normali_totali} richieste totali nel test set):")
-    print(f"      - Fatti Passare (Corretti): {normali_passati} ({perc_norm_passati:.2f}%)")
-    print(f"      - Bloccati per Errore (Falsi Positivi): {normali_bloccati} ({perc_norm_bloccati:.2f}%)")
+    print(f"      TRAFFICO LEGITTIMO (Valori Negativi) - {normali_totali} richieste totali nel test set:")
+    print(f"      - Veri Negativi (TN) - Fatti Passare: {normali_passati} ({perc_norm_passati:.2f}%)")
+    print(f"      - Falsi Positivi (FP) - Bloccati per Errore: {normali_bloccati} ({perc_norm_bloccati:.2f}%)")
     print("")
-    print(f"      ATTACCHI ({attacchi_totali} richieste totali nel test set):")
-    print(f"      - Bloccati dal WAF (Recall/Corretti): {attacchi_bloccati} ({perc_att_bloccati:.2f}%)")
-    print(f"      - Fatti Passare (Falsi Negativi/Buchi): {attacchi_passati} ({perc_att_passati:.2f}%)")
+    print(f"      ATTACCHI REALI (Valori Positivi) - {attacchi_totali} richieste totali nel test set:")
+    print(f"      - Veri Positivi (TP) - Bloccati dal WAF: {attacchi_bloccati} ({perc_att_bloccati:.2f}%)")
+    print(f"      - Falsi Negativi (FN) - Fatti Passare: {attacchi_passati} ({perc_att_passati:.2f}%)")
     print("      --------------------------------------------------")
 
     # NOVITA': Stampa a video quali attacchi esatti stanno passando (Falsi Negativi)
     if attacchi_passati > 0:
-        print("\n      [!] IDENTIFICAZIONE DEGLI ATTACCHI SFUGGITI (Primi 15):")
+        print("\n      [!] IDENTIFICAZIONE DEI FALSI NEGATIVI (Primi 15):")
         # Ricaviamo il sotto-dataframe degli attacchi nel test set
         df_test_anomalous = df_test[df_test["label"] == 1]
         
@@ -256,31 +262,65 @@ def main():
             print(f"      - {row['method']} {url_str}")
             i += 1
     
+    # Stampa a video quali richieste legittime vengono bloccate (Falsi Positivi)
+    if normali_bloccati > 0:
+        print("\n      [!] IDENTIFICAZIONE DEI FALSI POSITIVI (Primi 15):")
+        df_test_normal = df_test[df_test["label"] == 0]
+        fp_mask = scores_normal > best_threshold
+        df_fp = df_test_normal[fp_mask]
+        
+        i = 0
+        for _, row in df_fp.iterrows():
+            if i >= 15:
+                break
+            url_str = str(row['url'])
+            if len(url_str) > 100:
+                url_str = url_str[:97] + "..."
+            print(f"      - {row['method']} {url_str}")
+            i += 1
+            
     print("      --------------------------------------------------")
 
-    labels = ['Utenti Legittimi', 'Attacchi']
+    labels = ['Traffico Legittimo\n(Valori Negativi)', 'Attacchi Reali\n(Valori Positivi)']
     passati = [perc_norm_passati, perc_att_passati]
     bloccati = [perc_norm_bloccati, perc_att_bloccati]
 
     x = np.arange(len(labels))
     width = 0.35
 
-    plt.figure(figsize=(9, 6))
-    bar1 = plt.bar(x - width/2, passati, width, label='Fatti Passare', color='#2ecc71')
-    bar2 = plt.bar(x + width/2, bloccati, width, label='Bloccati dal WAF', color='#e74c3c')
+    plt.figure(figsize=(10, 7))
+    
+    # Disegno le barre individualmente per gestire i colori semantici (Verde=Giusto, Rosso=Sbagliato)
+    # 1. Traffico Legittimo
+    b1_tn = plt.bar(x[0] - width/2, passati[0], width, color='#2ecc71') # TN (Corretto -> Verde)
+    b2_fp = plt.bar(x[0] + width/2, bloccati[0], width, color='#e74c3c') # FP (Errore -> Rosso)
+    
+    # 2. Attacchi Reali
+    b3_fn = plt.bar(x[1] - width/2, passati[1], width, color='#e74c3c') # FN (Errore -> Rosso)
+    b4_tp = plt.bar(x[1] + width/2, bloccati[1], width, color='#2ecc71') # TP (Corretto -> Verde)
 
     plt.ylabel('Percentuale (%)', fontsize=12)
-    plt.title("Azione del WAF sulle Richieste in Entrata", fontsize=14)
-    plt.xticks(x, labels, fontsize=12)
+    plt.title("Matrice di Confusione / Esito Classificazione (Test Set)", fontsize=14)
+    plt.xticks(x, labels, fontsize=12, fontweight='bold')
     plt.ylim(0, 115) # Spazio per le etichette in cima
-    plt.legend(fontsize=11)
+    
+    # Legenda personalizzata
+    from matplotlib.patches import Patch
+    legend_elements = [
+        Patch(facecolor='#2ecc71', label='Azione Corretta (Sicuro)'),
+        Patch(facecolor='#e74c3c', label='Azione Errata (Rischio)')
+    ]
+    plt.legend(handles=legend_elements, fontsize=11)
 
-    # Scrive i numeri esatti sopra le colonne
-    for b1, b2 in zip(bar1, bar2):
-        plt.text(b1.get_x() + b1.get_width()/2., b1.get_height() + 1.5,
-                 f'{b1.get_height():.1f}%', ha='center', va='bottom', fontsize=11, fontweight='bold', color='#1e8449')
-        plt.text(b2.get_x() + b2.get_width()/2., b2.get_height() + 1.5,
-                 f'{b2.get_height():.1f}%', ha='center', va='bottom', fontsize=11, fontweight='bold', color='#922b21')
+    # Scrive i numeri esatti e le etichette formali sopra le colonne
+    # Barra 1: TN
+    plt.text(x[0] - width/2, passati[0] + 1.5, f'Veri Negativi\n(TN)\n{passati[0]:.1f}%', ha='center', va='bottom', fontsize=10, fontweight='bold', color='#1e8449')
+    # Barra 2: FP
+    plt.text(x[0] + width/2, bloccati[0] + 1.5, f'Falsi Positivi\n(FP)\n{bloccati[0]:.1f}%', ha='center', va='bottom', fontsize=10, fontweight='bold', color='#922b21')
+    # Barra 3: FN
+    plt.text(x[1] - width/2, passati[1] + 1.5, f'Falsi Negativi\n(FN)\n{passati[1]:.1f}%', ha='center', va='bottom', fontsize=10, fontweight='bold', color='#922b21')
+    # Barra 4: TP
+    plt.text(x[1] + width/2, bloccati[1] + 1.5, f'Veri Positivi\n(TP)\n{bloccati[1]:.1f}%', ha='center', va='bottom', fontsize=10, fontweight='bold', color='#1e8449')
 
     plt.grid(axis='y', linestyle="--", alpha=0.3)
     plt.savefig(MODELS_DIR / "esito_classificazione.png", dpi=300, bbox_inches='tight')
