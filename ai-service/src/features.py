@@ -82,7 +82,7 @@ FEATURE_NAMES = [
     "method_body_mismatch",      # Richieste GET ma con un Body (sintassi illecita)
     "content_type_body_mismatch",# Body presente ma Content-Type assente (o viceversa)
     
-    # --- 8. Nuove feature: Command Injection e Anomalie Estensioni ---
+    # --- 8.Command Injection e Anomalie Estensioni ---
     "os_cmd_token_count_url",    # Rileva comandi Linux/Windows nell'URL (es. rm, wget)
     "os_cmd_token_count_body",   # Rileva comandi Linux/Windows nel body
     "suspicious_ext_count_url",  # Estensioni file pericolose (.bak, .sh) nell'URL
