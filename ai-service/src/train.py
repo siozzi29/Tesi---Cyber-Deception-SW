@@ -51,9 +51,10 @@ def main():
     df_wp = preprocess.load_wordpress_traffic(DATA_DIR / "wordpress_normal.csv")
     if not df_wp.empty:
         df_wp = df_wp[colonne_utili]
-        # Oversampling per bilanciare la quantità di attacchi (circa 14.000)
-        df_wp_weighted = pd.concat([df_wp] * 100, ignore_index=True)
-        print(f"      Incluso dataset WP (Solo Normali) con Oversampling 100x: {len(df_wp_weighted)} righe")
+        # Oversampling dinamico rimosso poichè il dataset CSV (con data augmentation) 
+        # ha ormai superato abbondantemente la soglia dei 14.000 attacchi.
+        df_wp_weighted = df_wp.copy()
+        print(f"      Incluso dataset WP (Solo Normali): {len(df_wp_weighted)} righe")
     else:
         df_wp_weighted = pd.DataFrame(columns=colonne_utili)
         

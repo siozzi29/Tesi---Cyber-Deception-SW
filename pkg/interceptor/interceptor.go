@@ -5,6 +5,7 @@ import (
 	"io"
 	"log"
 	"net/http"
+	"strings"
 	"sync"
 	"time"
 )
@@ -210,6 +211,53 @@ func (i *SecurityInterceptor) ServeHTTP(w http.ResponseWriter, r *http.Request) 
 			Routed:      "forwarded",
 			Body:        reqBody,
 			ContentType: reqContentType,
+		})
+		return
+	}
+
+	// 1.6 Gateway Bypass (Accesso alla Pagina di Login)
+	if strings.HasPrefix(r.URL.Path, "/wp-login.php") {
+		log.Printf("[!] Bypass IA per Accesso Gateway (Login Page): %s", r.URL.Path)
+		i.logTelemetry(r, 0.0, false)
+		i.serveWithInjection(w, r, func(writer http.ResponseWriter, req *http.Request) {
+			i.router.Forward(writer, req)
+		})
+		i.recordEvent(SecurityEvent{
+			Timestamp:   time.Now(),
+			Path:        r.URL.RequestURI(),
+			Method:      r.Method,
+			RiskScore:   0.0,
+			IsHoney:     false,
+			Routed:      "forwarded",
+			Body:        reqBody,
+			ContentType: reqContentType,
+		})
+		return
+	}
+
+	// 1.7 Whitelist Rotte Statiche Front-end (Evita anomalia geometrica su "GET /")
+	if r.URL.Path == "/" && r.Method == "GET" && len(r.URL.Query()) == 0 {
+		log.Printf("[!] Bypass IA per rotta statica front-end (Whitelist): %s", r.URL.Path)
+		i.logTelemetry(r, 0.0, false)
+		i.serveWithInjection(w, r, func(writer http.ResponseWriter, req *http.Request) {
+			i.router.Forward(writer, req)
+		})
+		return
+	}
+
+	// 1.8 Whitelist Asset Statici (CSS, JS, Immagini, Font)
+	staticExtensions := []string{".css", ".js", ".png", ".jpg", ".jpeg", ".gif", ".ico", ".woff", ".woff2", ".ttf", ".webp"}
+	isStatic := false
+	lowerPath := strings.ToLower(r.URL.Path)
+	for _, ext := range staticExtensions {
+		if strings.HasSuffix(lowerPath, ext) {
+			isStatic = true
+			break
+		}
+	}
+	if isStatic {
+		i.serveWithInjection(w, r, func(writer http.ResponseWriter, req *http.Request) {
+			i.router.Forward(writer, req)
 		})
 		return
 	}

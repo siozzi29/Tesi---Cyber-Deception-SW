@@ -7,6 +7,9 @@ services:
     container_name: waap_ai_engine
     ports:
       - "8000:8000"
+    volumes:
+      - ./ai-service/models:/app/models
+      - ./ai-service/data:/app/data
     networks:
       - waap-net
     restart: always
@@ -24,9 +27,11 @@ services:
       - WORDPRESS_BACKEND=http://34.53.145.249
       - LISTEN_ADDR=:8080
       - DASHBOARD_ADDR=:9090
-      - RISK_THRESHOLD=0.5451
+      - RISK_THRESHOLD=0.60
     depends_on:
       - ai-service
+    volumes:
+      - ./ai-service/data:/app/ai-data
     networks:
       - waap-net
     restart: always

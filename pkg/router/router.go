@@ -43,25 +43,27 @@ func NewLegitRouter(backendAddr string) (*LegitRouter, error) {
 		IdleConnTimeout:       90 * time.Second,
 	}
 
-	// FIX: Riscriviamo i link assoluti generati da WordPress.
+	// Riscriviamo i link assoluti generati da WordPress e l'header Location.
 	proxy.ModifyResponse = func(resp *http.Response) error {
-		if strings.Contains(resp.Header.Get("Content-Type"), "text/html") {
+		reqHost := resp.Request.Host // es. localhost:8080
+
+		if loc := resp.Header.Get("Location"); loc != "" {
+			newLoc := strings.ReplaceAll(loc, target.Host+":8080", reqHost)
+			newLoc = strings.ReplaceAll(newLoc, target.Host, reqHost)
+			resp.Header.Set("Location", newLoc)
+		}
+
+		contentType := resp.Header.Get("Content-Type")
+		if strings.Contains(contentType, "text/") || strings.Contains(contentType, "application/json") || strings.Contains(contentType, "application/javascript") || strings.Contains(contentType, "application/xml") {
 			bodyBytes, err := io.ReadAll(resp.Body)
 			if err == nil {
 				resp.Body.Close()
-				// Sostituisce l'IP backend con l'URL del proxy richiesto dal client
-				reqHost := resp.Request.Host // es. localhost:8080
 				
-				// Sostituiamo solo target.Host (cioè 34.53.145.249) con localhost:8080
-				// Questo copre http://34... https://34... e //34...
 				newBody := bytes.ReplaceAll(bodyBytes, []byte(target.Host), []byte(reqHost))
 				
-				// Per sicurezza, se WordPress sputa il link come http://34... proviamo anche a rimpiazzare
-				// una variante escape come 34.53.145.249\/ in alcuni JSON inline
-				// Ma il replace su target.Host copre il 99% dei casi.
-				
 				resp.Body = io.NopCloser(bytes.NewBuffer(newBody))
-				resp.Header.Set("Content-Length", "") // Lascia che il server lo ricalcoli
+				// BUG FIX: usare Del() invece di Set("") per evitare header HTTP non validi!
+				resp.Header.Del("Content-Length")
 				resp.ContentLength = int64(len(newBody))
 			}
 		}
@@ -71,7 +73,14 @@ func NewLegitRouter(backendAddr string) (*LegitRouter, error) {
 	originalDirector := proxy.Director
 	proxy.Director = func(req *http.Request) {
 		originalDirector(req)
-		req.Header.Set("Accept-Encoding", "identity") // Chiede l'HTML in chiaro per poterlo rimpiazzare
+		req.Header.Set("Accept-Encoding", "identity") // Chiede il testo in chiaro per la riscrittura
+		
+		clientIP, _, err := net.SplitHostPort(req.RemoteAddr)
+		if err == nil {
+			if req.Header.Get("X-Real-IP") == "" {
+				req.Header.Set("X-Real-IP", clientIP)
+			}
+		}
 	}
 
 	proxy.ErrorHandler = func(w http.ResponseWriter, r *http.Request, err error) {

@@ -32,8 +32,8 @@ func (i *SecurityInterceptor) DashboardHandler(w http.ResponseWriter, r *http.Re
 			http.Error(w, err.Error(), http.StatusBadRequest)
 			return
 		}
-		// Write to CSV
-		f, err := os.OpenFile("/tmp/dashboard_training.csv", os.O_APPEND|os.O_CREATE|os.O_WRONLY, 0644)
+		// Write directly to the AI dataset (HITL)
+		f, err := os.OpenFile("/app/ai-data/wordpress_normal.csv", os.O_APPEND|os.O_CREATE|os.O_WRONLY, 0644)
 		if err != nil {
 			http.Error(w, err.Error(), http.StatusInternalServerError)
 			return
@@ -41,18 +41,31 @@ func (i *SecurityInterceptor) DashboardHandler(w http.ResponseWriter, r *http.Re
 		defer f.Close()
 		cw := csv.NewWriter(f)
 		for _, ev := range evs {
+			// HITL: User selected them, so they are explicitly normal (0)
+			// OVERSAMPLING: We force the AI to build a safe cluster by writing 500 copies
 			isAnom := "0"
-			if ev.Routed == "trapped" {
-				isAnom = "1"
+			for i := 0; i < 500; i++ {
+				cw.Write([]string{ev.Path, ev.Method, ev.Body, ev.ContentType, isAnom})
 			}
-			cw.Write([]string{ev.Path, ev.Method, ev.Body, ev.ContentType, isAnom})
 		}
 		cw.Flush()
 		w.WriteHeader(http.StatusOK)
+	case "/dashboard/retrain":
+		if r.Method != http.MethodPost {
+			http.Error(w, "Method not allowed", http.StatusMethodNotAllowed)
+			return
+		}
+		resp, err := http.Post("http://ai-service:8000/retrain", "application/json", nil)
+		if err != nil {
+			http.Error(w, err.Error(), http.StatusInternalServerError)
+			return
+		}
+		defer resp.Body.Close()
+		w.WriteHeader(resp.StatusCode)
 	case "/dashboard/download_dataset":
-		w.Header().Set("Content-Disposition", "attachment; filename=dashboard_training.csv")
+		w.Header().Set("Content-Disposition", "attachment; filename=wordpress_normal.csv")
 		w.Header().Set("Content-Type", "text/csv")
-		http.ServeFile(w, r, "/tmp/dashboard_training.csv")
+		http.ServeFile(w, r, "/app/ai-data/wordpress_normal.csv")
 	default:
 		http.NotFound(w, r)
 	}
@@ -82,7 +95,6 @@ func dashboardHTML() string {
 <body>
 <h1>WAAP Proxy Dashboard</h1>
 <a href="/dashboard/download_dataset" download class="btn-dl">📥 Scarica Dataset Aggiuntivo (CSV)</a>
-<button class="btn" style="background:#17a2b8;" onclick="loadEvents()">🔄 Forza Aggiornamento</button>
 <div class="grid">
  <div class="card"><h2>Statistiche</h2><pre id="stats">Caricamento...</pre></div>
  <div class="card"><h2>Ultimi eventi (Max 2000)</h2><div id="events">Caricamento...</div></div>

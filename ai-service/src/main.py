@@ -53,6 +53,23 @@ def health_check():
     """Endpoint di monitoraggio primario, utilizzato per garantire la disponibilità del servizio interno."""
     return {"status": "ok", "message": "Il servizio ML è operativo."}
 
+@app.post("/retrain")
+def retrain_model():
+    """Endpoint per riaddestrare l'IA 'on-the-fly' (Human-in-the-Loop) e ricaricare in RAM i nuovi modelli."""
+    import subprocess
+    base_dir = Path(__file__).resolve().parent.parent
+    try:
+        # Avvia il training come subprocess
+        subprocess.run(["python", "-m", "src.train"], cwd=base_dir, check=True)
+        # Ricarica i modelli in RAM
+        models_dir = base_dir / "models"
+        ml_resources["model"] = joblib.load(models_dir / "isolation_forest.joblib")
+        ml_resources["threshold"] = joblib.load(models_dir / "risk_threshold.joblib")
+        ml_resources["bounds"] = joblib.load(models_dir / "score_bounds.joblib")
+        return {"status": "success", "message": "Riaddestramento completato e modelli ricaricati in RAM."}
+    except Exception as e:
+        raise HTTPException(status_code=500, detail=str(e))
+
 @app.post("/score", response_model=ScoreResponse)
 def score_traffic(payload: RequestPayload):
     """

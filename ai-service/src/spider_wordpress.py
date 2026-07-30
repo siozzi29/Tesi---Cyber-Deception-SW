@@ -124,12 +124,41 @@ def main():
             continue
 
     print(f"\n[*] Crawling completato. Visitate {len(visited)} risorse uniche.")
+    
+    # 1. Carica righe esistenti per non sovrascrivere o duplicare
+    existing_rows = []
+    seen_signatures = set()
+    if OUTPUT_FILE.exists():
+        with open(OUTPUT_FILE, mode="r", newline="", encoding="utf-8") as f:
+            reader = csv.reader(f)
+            header = next(reader, None)
+            if header:
+                existing_rows.append(header)
+            for row in reader:
+                existing_rows.append(row)
+                if len(row) >= 4:
+                    sig = f"{row[0]}_{row[1]}_{row[2]}_{row[3]}"
+                    seen_signatures.add(sig)
+    else:
+        existing_rows.append(["url", "method", "content", "content_type", "label"])
+
+    # 2. Aggiungi le nuove righe (saltando header iniziale `dataset[0]`)
+    new_count = 0
+    for row in dataset[1:]:
+        sig = f"{row[0]}_{row[1]}_{row[2]}_{row[3]}"
+        if sig not in seen_signatures:
+            existing_rows.append(row)
+            seen_signatures.add(sig)
+            new_count += 1
+
+    # 3. Salva tutto insieme (vecchie + nuove)
     with open(OUTPUT_FILE, mode="w", newline="", encoding="utf-8") as f:
         writer = csv.writer(f)
-        writer.writerows(dataset)
+        writer.writerows(existing_rows)
         
-    print(f"[*] Dataset perfetto salvato in {OUTPUT_FILE}")
-    print(f"[*] Righe totali: {len(dataset)}")
+    print(f"[*] Dataset aggiornato in {OUTPUT_FILE}")
+    print(f"[*] Righe aggiunte in questa sessione: {new_count}")
+    print(f"[*] Righe totali attuali: {len(existing_rows)}")
 
 if __name__ == "__main__":
     main()
