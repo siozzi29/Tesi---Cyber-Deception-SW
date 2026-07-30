@@ -1,0 +1,123 @@
+### 1. Le Feature Estratte (Il Carburante dell'IA)
+
+L'ordine delle feature che hai salvato è sacro, perché quando scriveremo il `Security Interceptor` in Go, il proxy dovrà estrarre questi esatti valori dalle richieste HTTP in tempo reale e passarli a FastAPI nello stesso identico ordine. Hai raggruppato le feature in modo molto intelligente:
+
+* **Dimensionali (`url\_length`, `path\_length`, `query\_length`, `content\_length`):** Gli attaccanti usano spesso payload lunghissimi (es. per Buffer Overflow o lunghe query SQL).
+* **Composizionali e Offuscamento (`num\_special\_chars\_url`, `url\_entropy`, `num\_encoded\_chars`, `digit\_ratio`):** L'entropia e la densità di caratteri speciali sono la spia rossa per eccellenza per le Injection (SQLi, XSS).
+
+
+* **Strutturali e Metodi (`method\_get`, `method\_post`, `has\_content`):** Contestualizzano la richiesta.
+* **Semantiche (`suspicious\_token\_count`):** Indica la presenza di keyword tipiche degli attacchi.
+
+---
+
+### 2. Spiegazione dei Risultati del Modello
+
+L'Isolation Forest calcola l'Anomaly Score (il nostro Risk Score) basandosi su quanto velocemente un punto dati viene "isolato" negli alberi decisionali. La formula matematica alla base è:
+
+
+$$s(x,n) = 2^{-\frac{E(h(x))}{c(n)}}$$
+
+
+Dove un valore $s$ vicino a 1 indica un'anomalia palese. Il threshold (la soglia) decide dove tagliare: sopra la soglia sei un hacker (Classe 1), sotto sei un utente legittimo (Classe 0).
+
+Ecco come si è comportato il tuo modello:
+
+**La Baseline (Soglia di default)**
+
+* **Cosa fa:** È molto "timida". Cerca di non disturbare gli utenti legittimi.
+* **Risultato:** Ha fatto passare 34.200 utenti sani, ma ne ha bloccati 1.800 per errore (Falsi Positivi). Purtroppo, si è persa quasi 20.000 attacchi, scambiandoli per traffico pulito (Falsi Negativi).
+
+
+
+**Ricerca Soglia "Ottimale" (Massimizzando l'F1-Score a 0.275)**
+
+* **Cosa fa:** Lo script ha abbassato la soglia per catturare più hacker possibili.
+* **Risultato:** È diventata paranoica. Ha beccato 23.469 hacker su 25.065 (Recall altissima, 93.6%), ma per farlo **ha massacrato il traffico legittimo**. Ha scambiato 17.000 utenti sani per attaccanti (False Positives)!
+
+---
+
+### 3. Vanno bene con le nostre metriche?
+
+**Risposta breve: Assolutamente NO, capo.**
+
+**Risposta tecnica:**
+La ricerca della soglia ottimale ha massimizzato l'F1-Score sulla classe anomala, che in teoria in ambito Data Science è corretto, ma **va contro i nostri requisiti architetturali di Cyber Deception**.
+
+Analizziamo il perché incrociando i tuoi risultati con il nostro progetto:
+
+* **Il problema dei Falsi Positivi (Critico):** Nei nostri appunti abbiamo definito i Falsi Positivi come "Critici" e il target deve essere "vicino allo 0%". Un falso positivo in questa architettura significa prendere un cliente vero e sbatterlo nell'Honeypot, applicandogli il Tarpitting (rallentando la sua connessione per 30 secondi). Con la soglia "ottimale" a 0.275, hai un tasso di falsi positivi del **47%** (17.000 su 36.000). Metà dei clienti reali verrebbero bloccati dal nostro proxy! Questo è inaccettabile in produzione.
+
+
+* **La sinergia con la Deception:** Stiamo costruendo un WAAP *ibrido*. L'IA non deve fare tutto da sola e non deve essere perfetta nel bloccare gli attacchi. L'IA *sospetta*, ma sono le trappole attive (gli Honey-URL iniettati in Go) a dare il *verdetto certo* con zero falsi positivi.
+
+
+* **Meglio un Falso Negativo che un Falso Positivo:** Se un hacker (Falso Negativo) sfugge all'IA perché il payload è ambiguo, passerà al Livello 2 e quasi sicuramente cliccherà sull'Honey-URL invisibile facendo scraping. A quel punto, il `Security Interceptor` in Go lo rileva deterministicamente e lo sbatte nell'Honeypot senza pietà.
+
+
+OUTPUT:
+Estrazione feature in corso...
+                             count       mean        std        min        25%        50%        75%         max
+url_length                 61065.0  81.325358  75.547066  22.000000  48.000000  50.000000  68.000000  886.000000
+path_length                61065.0  28.679980   5.693050   0.000000  27.000000  27.000000  31.000000   66.000000
+path_depth                 61065.0   3.012528   0.472266   0.000000   3.000000   3.000000   3.000000    6.000000
+num_params                 61065.0   1.604176   3.589887   0.000000   0.000000   0.000000   1.000000   13.000000
+query_length               61065.0  31.341980  75.134488   0.000000   0.000000   0.000000  17.000000  836.000000
+num_digits                 61065.0   9.220077  12.048275   4.000000   5.000000   5.000000   6.000000  223.000000
+num_special_chars_url      61065.0  13.180332  11.876506   5.000000   8.000000   8.000000  11.000000  161.000000
+num_uppercase              61065.0   2.400344   5.536094   0.000000   0.000000   0.000000   2.000000   62.000000
+url_entropy                61065.0   4.423930   0.280478   3.481715   4.276027   4.306128   4.505003    5.394362
+content_length             61065.0  31.936903  75.660779   0.000000   0.000000   0.000000  17.000000  836.000000
+has_content                61065.0   0.294391   0.455772   0.000000   0.000000   0.000000   1.000000    1.000000
+num_special_chars_content  61065.0   4.881356  11.666758   0.000000   0.000000   0.000000   2.000000  152.000000
+content_entropy            61065.0   1.237480   1.970291   0.000000   0.000000   0.000000   3.292770    5.336967
+method_get                 61065.0   0.705609   0.455772   0.000000   0.000000   1.000000   1.000000    1.000000
+method_post                61065.0   0.287890   0.452783   0.000000   0.000000   0.000000   1.000000    1.000000
+method_put                 61065.0   0.006501   0.080369   0.000000   0.000000   0.000000   0.000000    1.000000
+suspicious_token_count     61065.0   0.146745   0.450374   0.000000   0.000000   0.000000   0.000000    4.000000
+max_param_value_length     61065.0   6.748891  18.559690   0.000000   0.000000   0.000000   8.000000  370.000000
+num_encoded_chars          61065.0   0.937722   4.651172   0.000000   0.000000   0.000000   0.000000  114.000000
+digit_ratio                61065.0   0.109021   0.044696   0.033708   0.095652   0.103448   0.106383    0.560976
+special_char_ratio         61065.0   0.166397   0.019697   0.108434   0.157534   0.166667   0.170213    0.354167
+num_equals                 61065.0   1.604176   3.589887   0.000000   0.000000   0.000000   1.000000   13.000000
+num_ampersands             61065.0   1.316008   3.287640   0.000000   0.000000   0.000000   0.000000   12.000000
+params_vs_equals_mismatch  61065.0   0.000000   0.000000   0.000000   0.000000   0.000000   0.000000    0.000000
+content_type_is_form       61065.0   0.294391   0.455772   0.000000   0.000000   0.000000   1.000000    1.000000
+
+Training Isolation Forest...
+
+=== Baseline (contamination di default) ===
+              precision    recall  f1-score   support
+
+           0      0.632     0.950     0.759     36000
+           1      0.740     0.204     0.320     25065
+
+    accuracy                          0.644     61065
+   macro avg      0.686     0.577     0.539     61065
+weighted avg      0.676     0.644     0.579     61065
+
+Confusion matrix:
+[[34200  1800]
+ [19951  5114]]
+
+=== Ricerca soglia ottimale (massimizzando F1 sulla classe Anomalous) ===
+Soglia ottimale trovata: 0.275 (F1=0.716)
+Precision: 0.580 | Recall: 0.936
+
+=== Classification report a soglia ottimale ===
+              precision    recall  f1-score   support
+
+           0      0.923     0.528     0.671     36000
+           1      0.580     0.936     0.716     25065
+
+    accuracy                          0.695     61065
+   macro avg      0.751     0.732     0.694     61065
+weighted avg      0.782     0.695     0.690     61065
+
+Confusion matrix:
+[[19000 17000]
+ [ 1596 23469]]
+
+Modello, scaler e ordine feature salvati in models/
+Ordine feature (fondamentale per replicarlo in Go):
+['url_length', 'path_length', 'path_depth', 'num_params', 'query_length', 'num_digits', 'num_special_chars_url', 'num_uppercase', 'url_entropy', 'content_length', 'has_content', 'num_special_chars_content', 'content_entropy', 'method_get', 'method_post', 'method_put', 'suspicious_token_count', 'max_param_value_length', 'num_encoded_chars', 'digit_ratio', 'special_char_ratio', 'num_equals', 'num_ampersands', 'params_vs_equals_mismatch', 'content_type_is_form']
