@@ -87,10 +87,9 @@ def main():
     
     print("[4/9] Addestramento Isolation Forest (Grid Search su Validation)...")
     hyperparams = [
-        {"n_estimators": n, "max_samples": m, "contamination": c}
-        for n in [150]
-        for m in [1.0]
-        for c in [0.01, 0.05, 0.1]
+        {"n_estimators": 100, "max_samples": 1.0, "contamination": 0.01},
+        {"n_estimators": 200, "max_samples": 1.0, "contamination": 0.05},
+        {"n_estimators": 300, "max_samples": 1.0, "contamination": 0.1},
     ]
     
     best_model = None
@@ -161,39 +160,39 @@ def main():
     joblib.dump(float(best_threshold), MODELS_DIR / "risk_threshold.joblib")
     joblib.dump(best_bounds, MODELS_DIR / "score_bounds.joblib")
     
-    print("[8/9] Esecuzione k-fold (Disabilitata per addestramento veloce)...")
-    # seeds = [10, 42, 123, 777, 999]
-    # kfold_thresholds = []
-    # kfold_recalls = []
-    # 
-    # for seed in seeds:
-    #     # Replicazione rapida della suddivisione e tuning per valutare la varianza
-    #     t_n, temp_n = train_test_split(df_normal, test_size=0.4, random_state=seed)
-    #     v_n, _ = train_test_split(temp_n, test_size=0.5, random_state=seed)
-    #     v_a, _ = train_test_split(df_anomalous, test_size=0.5, random_state=seed)
-    #     
-    #     X_t, _ = extract_matrix(t_n)
-    #     X_v, y_v = extract_matrix(pd.concat([v_n, v_a]))
-    #     
-    #     kf_model = IsolationForest(random_state=seed, **best_params)
-    #     kf_model.fit(X_t)
-    #     
-    #     kf_t_raw = -kf_model.decision_function(X_t)
-    #     kf_v_raw = -kf_model.decision_function(X_v)
-    #     
-    #     kf_min = float(min(kf_t_raw.min(), kf_v_raw.min()))
-    #     kf_max = float(kf_v_raw.max())
-    #     
-    #     kf_v_scores = normalize_scores(kf_v_raw, kf_min, kf_max)
-    #     
-    #     fpr, tpr, ths = roc_curve(y_v, kf_v_scores)
-    #     valid_idx = np.where(fpr <= 0.01)[0]
-    #     if len(valid_idx) > 0:
-    #         kfold_thresholds.append(ths[valid_idx[-1]])
-    #         kfold_recalls.append(tpr[valid_idx[-1]])
-    #         
-    # print(f"      Soglia media: {np.mean(kfold_thresholds):.4f} (Deviazione Standard: {np.std(kfold_thresholds):.4f})")
-    # print(f"      Recall medio: {np.mean(kfold_recalls):.4f} (Deviazione Standard: {np.std(kfold_recalls):.4f})")
+    print("[8/9] Esecuzione k-fold...")
+    seeds = [10, 42, 123, 777, 999]
+    kfold_thresholds = []
+    kfold_recalls = []
+    
+    for seed in seeds:
+        # Replicazione rapida della suddivisione e tuning per valutare la varianza
+        t_n, temp_n = train_test_split(df_normal, test_size=0.4, random_state=seed)
+        v_n, _ = train_test_split(temp_n, test_size=0.5, random_state=seed)
+        v_a, _ = train_test_split(df_anomalous, test_size=0.5, random_state=seed)
+        
+        X_t, _ = extract_matrix(t_n)
+        X_v, y_v = extract_matrix(pd.concat([v_n, v_a]))
+        
+        kf_model = IsolationForest(random_state=seed, **best_params)
+        kf_model.fit(X_t)
+        
+        kf_t_raw = -kf_model.decision_function(X_t)
+        kf_v_raw = -kf_model.decision_function(X_v)
+        
+        kf_min = float(min(kf_t_raw.min(), kf_v_raw.min()))
+        kf_max = float(kf_v_raw.max())
+        
+        kf_v_scores = normalize_scores(kf_v_raw, kf_min, kf_max)
+        
+        fpr, tpr, ths = roc_curve(y_v, kf_v_scores)
+        valid_idx = np.where(fpr <= 0.01)[0]
+        if len(valid_idx) > 0:
+            kfold_thresholds.append(ths[valid_idx[-1]])
+            kfold_recalls.append(tpr[valid_idx[-1]])
+            
+    print(f"      Soglia media: {np.mean(kfold_thresholds):.4f} (Deviazione Standard: {np.std(kfold_thresholds):.4f})")
+    print(f"      Recall medio: {np.mean(kfold_recalls):.4f} (Deviazione Standard: {np.std(kfold_recalls):.4f})")
     
     print("[9/9] Generazione dei grafici di addestramento (Distribuzione e Bar Chart)...")
     

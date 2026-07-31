@@ -10,13 +10,14 @@ services:
     volumes:
       - ./ai-service/models:/app/models
       - ./ai-service/data:/app/data
+      - ./ai-service/src:/app/src
     networks:
       - waap-net
     restart: always
 
   proxy:
     build:
-      context: .
+      context: ./proxy
       dockerfile: Dockerfile
     container_name: waap_reverse_proxy
     ports:
@@ -27,7 +28,7 @@ services:
       - WORDPRESS_BACKEND=http://34.53.145.249
       - LISTEN_ADDR=:8080
       - DASHBOARD_ADDR=:9090
-      - RISK_THRESHOLD=0.60
+      - RISK_THRESHOLD=0.4760
     depends_on:
       - ai-service
     volumes:
