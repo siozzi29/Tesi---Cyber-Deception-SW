@@ -79,25 +79,27 @@ func dashboardHTML() string {
 <title>WAAP Proxy Dashboard</title>
 <style>
  body{font-family:Arial,sans-serif;margin:0;padding:16px;background:#f4f6fb;color:#111}
- h1{margin-bottom:8px}
+ h1{margin-bottom:16px}
  .card{background:#fff;border:1px solid #d7dde7;border-radius:10px;padding:16px;margin-bottom:16px;box-shadow:0 2px 10px rgba(0,0,0,.05)}
- .grid{display:grid;grid-template-columns:repeat(auto-fit,minmax(220px,1fr));gap:16px}
- pre{white-space:pre-wrap;word-break:break-word}
- table{width:100%;border-collapse:collapse;font-size:14px;}
- th,td{padding:6px;text-align:left;border-bottom:1px solid #eee}
+ .grid{display:grid;grid-template-columns:300px 1fr;gap:16px;align-items:start;}
+ @media (max-width: 800px) { .grid{grid-template-columns:1fr;} }
+ pre{white-space:pre-wrap;word-break:break-word;margin:0;font-size:13px;}
+ table{width:100%;border-collapse:collapse;font-size:14px;table-layout:fixed;}
+ th,td{padding:8px;text-align:left;border-bottom:1px solid #eee;overflow-wrap:break-word;word-wrap:break-word;word-break:break-word;}
  th{background:#f7f9fc}
- .btn{padding:6px 12px;background:#28a745;color:white;border:none;border-radius:4px;cursor:pointer;font-weight:bold;margin-right:4px;}
+ .col-chk{width:30px;}
+ .col-time{width:80px;}
+ .col-score{width:70px;}
+ .col-route{width:80px;}
+ .btn{padding:6px 12px;background:#28a745;color:white;border:none;border-radius:4px;cursor:pointer;font-weight:bold;margin-right:4px;margin-bottom:4px;}
  .btn:hover{background:#218838;}
- .btn-dl{padding:10px 16px;background:#007bff;color:white;margin-bottom:16px;display:inline-block;text-decoration:none;border-radius:5px;}
- .btn-dl:hover{background:#0069d9;}
 </style>
 </head>
 <body>
 <h1>WAAP Proxy Dashboard</h1>
-<a href="/dashboard/download_dataset" download class="btn-dl">📥 Scarica Dataset Aggiuntivo (CSV)</a>
 <div class="grid">
  <div class="card"><h2>Statistiche</h2><pre id="stats">Caricamento...</pre></div>
- <div class="card"><h2>Ultimi eventi (Max 2000)</h2><div id="events">Caricamento...</div></div>
+ <div class="card" style="overflow-x:auto;"><h2>Ultimi eventi (Max 2000)</h2><div id="events">Caricamento...</div></div>
 </div>
 <script>
 let currentEvents = [];
@@ -116,7 +118,7 @@ async function loadEvents(){
  }
  currentEvents = data;
  let html='<div style="margin-bottom:10px;"><button class="btn" style="background:#6c757d;" onclick="selectAll()">Tutti</button> <button class="btn" style="background:#6c757d;" onclick="selectByRoute(\'forwarded\')">Solo Forwarded</button> <button class="btn" style="background:#6c757d;" onclick="selectByRoute(\'trapped\')">Solo Trapped</button> <button class="btn" style="background:#dc3545;" onclick="deselectAll()">Nessuno</button> <button class="btn" style="background:#ffc107;color:black;" onclick="saveSelected()">💾 Salva Selezionati</button></div>';
- html+='<table><thead><tr><th><input type="checkbox" onchange="toggleAll(this)"></th><th>Time</th><th>Path</th><th>Score</th><th>Route</th></tr></thead><tbody>';
+ html+='<table><thead><tr><th class="col-chk"><input type="checkbox" onchange="toggleAll(this)"></th><th class="col-time">Time</th><th>Path</th><th class="col-score">Score</th><th class="col-route">Route</th></tr></thead><tbody>';
  for(let idx=data.length-1; idx>=0; idx--){
    const ev=data[idx];
    html += '<tr><td><input type="checkbox" class="ev-chk" value="'+idx+'"></td><td>' + new Date(ev.timestamp).toLocaleTimeString() + '</td><td>' + ev.path + '</td><td>' + ev.risk_score.toFixed(4) + '</td><td>' + ev.routed + '</td></tr>';
