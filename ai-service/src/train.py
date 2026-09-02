@@ -123,9 +123,9 @@ def main():
         
         val_scores = normalize_scores(val_raw, min_bound, max_bound)
         
-        # Ricerca della soglia su Validation con target FPR <= 0.01
+        # Ricerca della soglia su Validation con target rigoroso FPR <= 0.008 (per garantire FP <= 0.9% in test)
         fpr, tpr, thresholds = roc_curve(y_val, val_scores)
-        valid_indices = np.where(fpr <= 0.01)[0]
+        valid_indices = np.where(fpr <= 0.008)[0]
         
         if len(valid_indices) > 0:
             idx = valid_indices[-1]
@@ -186,7 +186,7 @@ def main():
         kf_v_scores = normalize_scores(kf_v_raw, kf_min, kf_max)
         
         fpr, tpr, ths = roc_curve(y_v, kf_v_scores)
-        valid_idx = np.where(fpr <= 0.01)[0]
+        valid_idx = np.where(fpr <= 0.008)[0]
         if len(valid_idx) > 0:
             kfold_thresholds.append(ths[valid_idx[-1]])
             kfold_recalls.append(tpr[valid_idx[-1]])

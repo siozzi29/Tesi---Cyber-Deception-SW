@@ -42,16 +42,9 @@ def run(playwright):
                     content_type = value
                     break
             
-            # Assegnazioni di default per file statici
+            # Assegnazioni corrette: le richieste GET HTTP standard non hanno Content-Type
             if method == "GET" and not content_type:
-                if ".css" in path:
-                    content_type = "text/css"
-                elif ".js" in path:
-                    content_type = "application/javascript"
-                elif ".png" in path or ".jpg" in path:
-                    content_type = "image/png"
-                else:
-                    content_type = "text/html"
+                content_type = ""
 
             writer.writerow([path, method, body, content_type, 0])
             req_count += 1
