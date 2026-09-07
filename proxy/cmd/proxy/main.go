@@ -88,26 +88,26 @@ func main() {
 
 	vigile := interceptor.NewSecurityInterceptor(realAI, realInj, legitRouter, mockTel, riskThreshold)
 
-	// --- Listener pubblico (dietro il Load Balancer) ---
+	// --- Listener pubblico (dietro il Load Balancer o Cloud Run) ---
 	publicAddr := os.Getenv("LISTEN_ADDR")
 	if publicAddr == "" {
-		publicAddr = ":8080"
+		if p := os.Getenv("PORT"); p != "" {
+			publicAddr = ":" + p
+		} else {
+			publicAddr = ":8080"
+		}
 	}
 	srv := listener.NewServer(publicAddr, vigile)
 
-	// --- Listener dashboard (SEPARATO, non esposto dal Load Balancer) ---
-	// FIX: prima il dashboard viveva sullo stesso mux del traffico pubblico
-	// (pkg/listener/server.go), quindi era raggiungibile da internet senza
-	// auth attraverso wordpress-lb -> instance-group-waap-proxy:8080. Ora è
-	// un http.Server indipendente, su un indirizzo diverso (di default solo
-	// localhost) che il LB non tocca. Va comunque protetto anche a livello
-	// di firewall GCP se lo esponete sull'IP interno della VPC.
+	// --- Listener dashboard (SEPARATO, per ambiente locale/VM) ---
 	dashboardAddr := os.Getenv("DASHBOARD_ADDR")
-	if dashboardAddr == "" {
-		dashboardAddr = "127.0.0.1:9090"
-		log.Printf("[WARN] DASHBOARD_ADDR non impostata, uso fallback locale: %s", dashboardAddr)
+	if dashboardAddr == "" && os.Getenv("PORT") == "" {
+		dashboardAddr = ":9090"
 	}
-	dashboardSrv := listener.NewDashboardServer(dashboardAddr, vigile)
+	var dashboardSrv *listener.Server
+	if dashboardAddr != "" {
+		dashboardSrv = listener.NewDashboardServer(dashboardAddr, vigile)
+	}
 
 	stopChan := make(chan os.Signal, 1)
 	signal.Notify(stopChan, os.Interrupt, syscall.SIGTERM)
@@ -121,13 +121,15 @@ func main() {
 		}
 	}()
 
-	wg.Add(1)
-	go func() {
-		defer wg.Done()
-		if err := dashboardSrv.StartDashboard(); err != nil {
-			log.Fatalf("Errore critico del server dashboard: %v", err)
-		}
-	}()
+	if dashboardSrv != nil {
+		wg.Add(1)
+		go func() {
+			defer wg.Done()
+			if err := dashboardSrv.StartDashboard(); err != nil {
+				log.Fatalf("Errore critico del server dashboard: %v", err)
+			}
+		}()
+	}
 
 	<-stopChan
 	log.Println("\nSegnale ricevuto. Inizio Graceful Shutdown...")
@@ -138,8 +140,10 @@ func main() {
 	if err := srv.Stop(ctx); err != nil {
 		log.Printf("[ERR] Errore durante lo shutdown del server pubblico: %v", err)
 	}
-	if err := dashboardSrv.StopDashboard(ctx); err != nil {
-		log.Printf("[ERR] Errore durante lo shutdown del server dashboard: %v", err)
+	if dashboardSrv != nil {
+		if err := dashboardSrv.StopDashboard(ctx); err != nil {
+			log.Printf("[ERR] Errore durante lo shutdown del server dashboard: %v", err)
+		}
 	}
 
 	wg.Wait()

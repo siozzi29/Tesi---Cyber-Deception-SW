@@ -35,6 +35,12 @@ type Server struct {
 // (il SecurityInterceptor): nessuna rotta di servizio, nessun dashboard.
 func NewServer(addr string, handler InterceptorHandler) *Server {
 	mux := http.NewServeMux()
+	
+	// Supporto Cloud Run: espone /dashboard anche sulla porta principale
+	if si, ok := handler.(*interceptor.SecurityInterceptor); ok {
+		mux.HandleFunc("/dashboard", si.DashboardHandler)
+		mux.HandleFunc("/dashboard/", si.DashboardHandler)
+	}
 	mux.Handle("/", handler)
 
 	return &Server{
