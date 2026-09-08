@@ -187,6 +187,7 @@ func (c *HTTPAIClient) GetRiskScore(r *http.Request) (float64, error) {
 	req, err := http.NewRequestWithContext(ctx, http.MethodPost, c.endpoint, bytes.NewReader(body))
 	if err != nil {
 		return 0, fmt.Errorf("aiclient: errore creazione richiesta: %w", err)
+	}
 	req.Header.Set("Content-Type", "application/json")
 
 	// Service-to-Service auth su Google Cloud Run
