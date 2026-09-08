@@ -7,24 +7,19 @@ import (
 	"fmt"
 	"io"
 	"net/http"
+	"strings"
+	"sync"
 	"time"
 )
 
 // maxRequestBodyBytes è il tetto anti-memory-leak sulla porzione di body
-// letta per l'estrazione feature. Lo stesso principio già applicato in
-// pkg/interceptor/injecting_writer.go (maxBufferableBodySize): un attaccante
-// non deve poter esaurire la RAM del proxy mandando un POST enorme proprio
-// al componente che dovrebbe rilevare l'attacco. 1MB è ampiamente sufficiente
-// per le feature estratte da ai-service/features.py (che lavorano su path,
-// query string e contenuto testuale del body, non su file binari).
+// letta per l'estrazione feature.
 const maxRequestBodyBytes = 1 << 20 // 1MB
 
-// maxErrorBodyBytes limita quanto leggiamo dal body di una risposta di
-// errore di FastAPI, solo per loggarlo — non ci serve di più.
+// maxErrorBodyBytes limita quanto leggiamo dal body di una risposta di errore.
 const maxErrorBodyBytes = 4 << 10 // 4KB
 
 // requestPayload rispecchia esattamente il modello Pydantic RequestPayload
-// definito in ai-service/main.py. Se cambi uno dei due, aggiorna anche l'altro.
 type requestPayload struct {
 	URL         string `json:"url"`
 	Method      string `json:"method"`
@@ -39,12 +34,78 @@ type scoreResponse struct {
 	Threshold   float64 `json:"threshold"`
 }
 
+type tokenCache struct {
+	mu        sync.RWMutex
+	token     string
+	expiresAt time.Time
+}
+
 // HTTPAIClient implementa l'interfaccia AIClient (definita in pkg/interceptor)
 // chiamando il servizio FastAPI con il modello Isolation Forest.
 type HTTPAIClient struct {
-	endpoint   string // es. "http://localhost:8000/score"
+	endpoint   string // es. "http://localhost:8000/score" o "https://waap-ai-engine-..."
 	timeout    time.Duration
 	httpClient *http.Client
+	tokenCache tokenCache
+}
+
+// getGoogleIDToken recupera un token OIDC dal Google Cloud Metadata Server
+// per consentire l'invocazione sicura Service-to-Service tra Cloud Run privati.
+func (c *HTTPAIClient) getGoogleIDToken(ctx context.Context, endpointURL string) (string, error) {
+	if !strings.HasPrefix(endpointURL, "https://") {
+		return "", nil // Se locale (HTTP), nessun token richiesto
+	}
+
+	c.tokenCache.mu.RLock()
+	if c.tokenCache.token != "" && time.Now().Before(c.tokenCache.expiresAt) {
+		token := c.tokenCache.token
+		c.tokenCache.mu.RUnlock()
+		return token, nil
+	}
+	c.tokenCache.mu.RUnlock()
+
+	c.tokenCache.mu.Lock()
+	defer c.tokenCache.mu.Unlock()
+
+	if c.tokenCache.token != "" && time.Now().Before(c.tokenCache.expiresAt) {
+		return c.tokenCache.token, nil
+	}
+
+	// Estrae l'audience base (es. https://waap-ai-engine-xxxx.run.app)
+	parts := strings.Split(endpointURL, "/")
+	if len(parts) < 3 {
+		return "", fmt.Errorf("endpoint invalido")
+	}
+	baseAudience := parts[0] + "//" + parts[2]
+
+	metaURL := fmt.Sprintf("http://metadata.google.internal/computeMetadata/v1/instance/service-accounts/default/identity?audience=%s", baseAudience)
+	metaReq, err := http.NewRequestWithContext(ctx, http.MethodGet, metaURL, nil)
+	if err != nil {
+		return "", err
+	}
+	metaReq.Header.Set("Metadata-Flavor", "Google")
+
+	metaClient := &http.Client{Timeout: 2 * time.Second}
+	metaResp, err := metaClient.Do(metaReq)
+	if err != nil {
+		return "", err
+	}
+	defer metaResp.Body.Close()
+
+	if metaResp.StatusCode != http.StatusOK {
+		return "", fmt.Errorf("metadata server code: %d", metaResp.StatusCode)
+	}
+
+	tokenBytes, err := io.ReadAll(metaResp.Body)
+	if err != nil {
+		return "", err
+	}
+
+	token := strings.TrimSpace(string(tokenBytes))
+	c.tokenCache.token = token
+	c.tokenCache.expiresAt = time.Now().Add(45 * time.Minute)
+
+	return token, nil
 }
 
 // NewHTTPAIClient costruisce il client con un timeout aggressivo: se FastAPI
@@ -126,8 +187,12 @@ func (c *HTTPAIClient) GetRiskScore(r *http.Request) (float64, error) {
 	req, err := http.NewRequestWithContext(ctx, http.MethodPost, c.endpoint, bytes.NewReader(body))
 	if err != nil {
 		return 0, fmt.Errorf("aiclient: errore creazione richiesta: %w", err)
-	}
 	req.Header.Set("Content-Type", "application/json")
+
+	// Service-to-Service auth su Google Cloud Run
+	if token, err := c.getGoogleIDToken(ctx, c.endpoint); err == nil && token != "" {
+		req.Header.Set("Authorization", "Bearer "+token)
+	}
 
 	resp, err := c.httpClient.Do(req)
 	if err != nil {
