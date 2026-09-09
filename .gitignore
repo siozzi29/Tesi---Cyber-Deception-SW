@@ -219,6 +219,7 @@ __marimo__/
 
 ai-service/venv/
 ai-service/data/
-ai-service/models/
+ai-service/models/random_forest_supervised.joblib
+ai-service/models/*.png
 *.exe
 waap-proxy
