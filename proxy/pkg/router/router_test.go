@@ -1,9 +1,12 @@
 package router
 
 import (
+	"context"
 	"io"
+	"net"
 	"net/http"
 	"net/http/httptest"
+	"strings"
 	"testing"
 	"time"
 )
@@ -94,5 +97,54 @@ func TestTarpitAndTrapDoesNotBlockAboveConfiguredDelay(t *testing.T) {
 
 	if elapsed > 200*time.Millisecond {
 		t.Fatalf("il tarpit ha impiegato %v, molto più del delay configurato (20ms) — hardcoded residuo?", elapsed)
+	}
+}
+
+func TestModifyResponseRewritesHTTPToHTTPSForCloudRun(t *testing.T) {
+	backend := httptest.NewServer(http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
+		w.Header().Set("Content-Type", "text/html; charset=utf-8")
+		w.Header().Set("Location", "http://10.132.0.2:80/wp-admin/")
+		w.Write([]byte(`<html><head><link rel="stylesheet" href="http://10.132.0.2/wp-content/themes/twentytwentyfive/style.css"><link rel="stylesheet" href="http://localhost:8080/style.css"></head><body><img src="http://10.132.0.2:80/image.png"><a href="http://waap-proxy.run.app/page">Link</a></body></html>`))
+	}))
+	defer backend.Close()
+
+	lr, err := NewLegitRouter("http://10.132.0.2:80")
+	if err != nil {
+		t.Fatalf("errore creazione router: %v", err)
+	}
+	lr.proxy.Transport = &http.Transport{
+		// Indirizziamo le chiamate di test al server backend finto
+		DialContext: func(ctx context.Context, network, addr string) (net.Conn, error) {
+			return net.Dial("tcp", backend.Listener.Addr().String())
+		},
+	}
+
+	req := httptest.NewRequest(http.MethodGet, "/home", nil)
+	req.Host = "waap-proxy.run.app"
+	req.Header.Set("X-Forwarded-Proto", "https")
+	w := httptest.NewRecorder()
+
+	lr.Forward(w, req)
+
+	resp := w.Result()
+	body, _ := io.ReadAll(resp.Body)
+	bodyStr := string(body)
+
+	// Location deve essere HTTPS e puntare all'host pubblico
+	if loc := resp.Header.Get("Location"); loc != "https://waap-proxy.run.app/wp-admin/" {
+		t.Fatalf("Location atteso 'https://waap-proxy.run.app/wp-admin/', ottenuto %q", loc)
+	}
+
+	// Nessun link deve iniziare per http://
+	if strings.Contains(bodyStr, "http://") {
+		t.Fatalf("trovati link http:// non riscritti nel body: %s", bodyStr)
+	}
+
+	if !strings.Contains(bodyStr, `href="https://waap-proxy.run.app/wp-content/themes/twentytwentyfive/style.css"`) {
+		t.Fatalf("foglio di stile non riscritto correttamente in HTTPS: %s", bodyStr)
+	}
+
+	if !strings.Contains(bodyStr, `src="https://waap-proxy.run.app/image.png"`) {
+		t.Fatalf("immagine non riscritta correttamente in HTTPS: %s", bodyStr)
 	}
 }
