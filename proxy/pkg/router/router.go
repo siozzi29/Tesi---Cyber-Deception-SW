@@ -47,10 +47,11 @@ func NewLegitRouter(backendAddr string) (*LegitRouter, error) {
 	proxy.ModifyResponse = func(resp *http.Response) error {
 		reqHost := resp.Request.Host // es. waap-proxy-175735032844.europe-west1.run.app
 
-		// Riconosciamo se la richiesta originale dal browser è HTTPS
+		// Riconosciamo se la richiesta originale dal browser è HTTPS (Cloud Run, apuliasoft.com o TLS diretto)
 		isHTTPS := resp.Request.TLS != nil ||
 			strings.EqualFold(resp.Request.Header.Get("X-Forwarded-Proto"), "https") ||
-			strings.Contains(reqHost, "run.app")
+			strings.Contains(reqHost, "run.app") ||
+			strings.Contains(reqHost, "apuliasoft.com")
 
 		scheme := "http://"
 		if isHTTPS {
@@ -131,7 +132,7 @@ func NewLegitRouter(backendAddr string) (*LegitRouter, error) {
 			req.Header.Set("X-Forwarded-Host", req.Host)
 		}
 		if req.Header.Get("X-Forwarded-Proto") == "" {
-			if req.TLS != nil || strings.Contains(req.Host, "run.app") {
+			if req.TLS != nil || strings.Contains(req.Host, "run.app") || strings.Contains(req.Host, "apuliasoft.com") {
 				req.Header.Set("X-Forwarded-Proto", "https")
 			} else {
 				req.Header.Set("X-Forwarded-Proto", "http")
