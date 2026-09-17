@@ -1,6 +1,6 @@
 # Cyber Deception WAAP — Architecture & Project Context
 
-> **Tesi di Laurea Triennale in Ingegneria Informatica**  
+> **Tesi di Laurea Triennale in Informatica**  
 > **Candidato:** Simone Iozzi  
 > **Azienda Ospitante:** Apuliasoft  
 > **Titolo:** Progettazione e implementazione di un Web Application & API Protection (WAAP) integrato con Cyber Deception dinamica e rilevamento anomalie basato su Machine Learning (Isolation Forest).
