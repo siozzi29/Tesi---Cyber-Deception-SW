@@ -32,13 +32,15 @@
 ## Panoramica e Obiettivi del Progetto
 
 I Web Application Firewall (WAF) tradizionali basati su regole deterministiche e firme statiche (es. OWASP Core Rule Set) presentano due limiti strutturali:
+
 1. **Inefficacia contro minacce Zero-Day e payload offuscati**: una firma statica non può intercettare pattern non noti o varianti modificate tramite tecniche di evasione WAF.
 2. **Asimmetria a favore dell'attaccante**: restituendo immediatamente un codice HTTP `403 Forbidden`, i WAF informano l'avversario della presenza del filtro, consentendogli di iterare rapidamente tentativi di bypass automatici a costo computazionale nullo per l'attaccante.
 
 Questo progetto implementa una soluzione **WAAP di nuova generazione** a doppia barriera difensiva:
-* **Cyber Deception Dinamica (Honey-Tokens)**: il Reverse Proxy inietta a runtime trappole invisibili agli utenti umani (`display:none` nel DOM HTML). Se uno scanner o crawler automatico richiede l'esca, viene identificato all'istante con **100% di accuratezza e zero falsi positivi**.
-* **Intelligenza Artificiale Comportamentale (Isolation Forest)**: un motore di Machine Learning analizza ogni richiesta HTTP estraendo **44 feature dimensionali** (strutturali, entropiche, sintattiche ed euristiche di attacco/evasione), quantificando in millisecondi il livello di rischio (*Risk Score* compreso tra 0 e 1).
-* **Risposta Asimmetrica Attiva (Tarpitting)**: gli attaccanti identificati vengono intrappolati in un ritardo forzato di 3 secondi (*Slowloris inverso*) prima di ricevere un finto messaggio di errore, invertendo i costi computazionali ed esaurendo i thread di scansione dell'attaccante.
+
+- **Cyber Deception Dinamica (Honey-Tokens)**: il Reverse Proxy inietta a runtime trappole invisibili agli utenti umani (`display:none` nel DOM HTML). Se uno scanner o crawler automatico richiede l'esca, viene identificato all'istante con **100% di accuratezza e zero falsi positivi**.
+- **Intelligenza Artificiale Comportamentale (Isolation Forest)**: un motore di Machine Learning analizza ogni richiesta HTTP estraendo **44 feature dimensionali** (strutturali, entropiche, sintattiche ed euristiche di attacco/evasione), quantificando in millisecondi il livello di rischio (_Risk Score_ compreso tra 0 e 1).
+- **Risposta Asimmetrica Attiva (Tarpitting)**: gli attaccanti identificati vengono intrappolati in un ritardo forzato di 3 secondi (_Slowloris inverso_) prima di ricevere un finto messaggio di errore, invertendo i costi computazionali ed esaurendo i thread di scansione dell'attaccante.
 
 ---
 
@@ -94,12 +96,12 @@ flowchart TD
 
 ## Funzionalità Chiave
 
-* **Iniezione Dinamica Honey-Token**: Generazione di token crittografici casuali (16 caratteri esadecimali) con percorso mimetico `/sys/health-check-<token>`, memorizzati con TTL di 30 minuti e protezione automatica della memoria (pulizia periodica e hard-cap a 50.000 record).
-* **AI Anomaly Detection a 44 Dimensioni**: Estrazione e normalizzazione di feature su lunghezze, profondità path, conteggi parametri, entropia di Shannon (rilevamento offuscamento), keyword di exploit (SQLi, XSS, Path Traversal, RCE) e indicatori di evasione WAF (doppio URL encoding, Null Byte, HTTP Parameter Pollution).
-* **Architettura Resiliente Fail-Open**: In caso di anomalie temporanee, timeout di rete o crash dell'AI engine, il proxy non interrompe il servizio agli utenti leciti ma garantisce la continuità operativa con logging di telemetria.
-* **Riscrittura Trasparente Mixed Content**: Risoluzione al volo dei riferimenti HTTP in HTTPS per tutti gli asset interni e gli URL canonici generati da WordPress, prevenendo i blocchi del browser dovuti a terminazione TLS su Cloud Run.
-* **Autenticazione Cloud Service-to-Service**: Il proxy acquisisce token OIDC di identità firmati interrogando il *GCP Metadata Server* (`http://metadata.google.internal/`) per autorizzare in modo crittograficamente sicuro le invocazioni private verso l'AI Engine (`roles/run.invoker`).
-* **Dashboard di Monitoraggio Live**: Interfaccia web integrata (`/dashboard`) per visualizzare in tempo reale statistiche aggregate, distribuzioni dei punteggi di rischio e registro degli attacchi sventati.
+- **Iniezione Dinamica Honey-Token**: Generazione di token crittografici casuali (16 caratteri esadecimali) con percorso mimetico `/sys/health-check-<token>`, memorizzati con TTL di 30 minuti e protezione automatica della memoria (pulizia periodica e hard-cap a 50.000 record).
+- **AI Anomaly Detection a 44 Dimensioni**: Estrazione e normalizzazione di feature su lunghezze, profondità path, conteggi parametri, entropia di Shannon (rilevamento offuscamento), keyword di exploit (SQLi, XSS, Path Traversal, RCE) e indicatori di evasione WAF (doppio URL encoding, Null Byte, HTTP Parameter Pollution).
+- **Architettura Resiliente Fail-Open**: In caso di anomalie temporanee, timeout di rete o crash dell'AI engine, il proxy non interrompe il servizio agli utenti leciti ma garantisce la continuità operativa con logging di telemetria.
+- **Riscrittura Trasparente Mixed Content**: Risoluzione al volo dei riferimenti HTTP in HTTPS per tutti gli asset interni e gli URL canonici generati da WordPress, prevenendo i blocchi del browser dovuti a terminazione TLS su Cloud Run.
+- **Autenticazione Cloud Service-to-Service**: Il proxy acquisisce token OIDC di identità firmati interrogando il _GCP Metadata Server_ (`http://metadata.google.internal/`) per autorizzare in modo crittograficamente sicuro le invocazioni private verso l'AI Engine (`roles/run.invoker`).
+- **Dashboard di Monitoraggio Live**: Interfaccia web integrata (`/dashboard`) per visualizzare in tempo reale statistiche aggregate, distribuzioni dei punteggi di rischio e registro degli attacchi sventati.
 
 ---
 
@@ -144,7 +146,7 @@ flowchart TD
 
 ## Pipeline di Machine Learning (AI Engine)
 
-Il modello di Anomaly Detection si basa sull'algoritmo **Isolation Forest** configurato secondo una strategia *Domain-Specific*:
+Il modello di Anomaly Detection si basa sull'algoritmo **Isolation Forest** configurato secondo una strategia _Domain-Specific_:
 
 1. **Addestramento Unsupervised su Traffico Puro**: Il modello viene addestrato **esclusivamente su 81.357 richieste lecite reali di WordPress** (0% contaminazione di attacchi nella fase di fitting).
 2. **Deduplicazione Anti Data-Leakage**: I dataset pubblici di attacchi (CSIC 2010 / ECML) sono stati deduplicati su `(method, url, content)`, riducendo il corpus da 63.735 a 28.331 payload unici per evitare sovrastime artificiali delle metriche.
@@ -162,30 +164,31 @@ python -m src.train
 
 ### 1. Metriche di Rilevamento sul Blind Test Set (27.119 Normali + 14.167 Attacchi)
 
-| Metrica | Risultato Ottenuto | Dettaglio / Note |
-| :--- | :---: | :--- |
-| **Precision** | **99.45%** | Falsi allarmi quasi nulli su traffico lecito |
-| **Recall (Detection Rate)** | **94.99%** | Identificazione accurata di vettori non noti |
-| **F1-Score** | **97.17%** | Bilanciamento armonico ottimale |
-| **AUC-ROC** | **0.9987** | Separabilità quasi perfetta delle distribuzioni |
-| **5-Fold Cross Validation** | $\tau = 0.4623 \pm 0.0218$ | Recall stabile al $94.20\% \pm 1.56\%$ |
+| Metrica                     |     Risultato Ottenuto     | Dettaglio / Note                                |
+| :-------------------------- | :------------------------: | :---------------------------------------------- |
+| **Precision**               |         **99.45%**         | Falsi allarmi quasi nulli su traffico lecito    |
+| **Recall (Detection Rate)** |         **94.99%**         | Identificazione accurata di vettori non noti    |
+| **F1-Score**                |         **97.17%**         | Bilanciamento armonico ottimale                 |
+| **AUC-ROC**                 |         **0.9987**         | Separabilità quasi perfetta delle distribuzioni |
+| **5-Fold Cross Validation** | $\tau = 0.4623 \pm 0.0218$ | Recall stabile al $94.20\% \pm 1.56\%$          |
 
 ### 2. Valutazione della Latenza End-to-End
 
-| Scenario di Navigazione | Latenza Osservata | Azione del Sistema |
-| :--- | :---: | :--- |
-| **Baseline diretta (Senza WAAP)** | `~10–15 ms` (Media: 12.4 ms) | Chiamata diretta non protetta a WordPress |
-| **Traffico Lecito (Con WAAP attivo)** | `35–48 ms` | Analisi AI (~25–35 ms) + Inoltro trasparente |
-| **Attacco / Visita Honey-URL** | `~3.000 ms` | **Tarpitting attivo**: 3 secondi di ritardo forzato |
+| Scenario di Navigazione               |      Latenza Osservata       | Azione del Sistema                                  |
+| :------------------------------------ | :--------------------------: | :-------------------------------------------------- |
+| **Baseline diretta (Senza WAAP)**     | `~10–15 ms` (Media: 12.4 ms) | Chiamata diretta non protetta a WordPress           |
+| **Traffico Lecito (Con WAAP attivo)** |          `35–48 ms`          | Analisi AI (~25–35 ms) + Inoltro trasparente        |
+| **Attacco / Visita Honey-URL**        |         `~3.000 ms`          | **Tarpitting attivo**: 3 secondi di ritardo forzato |
 
 ---
 
 ## Installazione e Guida all'Avvio Rapido
 
 ### Prerequisiti
-* [Docker](https://www.docker.com/) e [Docker Compose](https://docs.docker.com/compose/)
-* [Go 1.22+](https://golang.org/) *(opzionale per esecuzione nativa)*
-* [Python 3.11+](https://www.python.org/) *(opzionale per esecuzione nativa)*
+
+- [Docker](https://www.docker.com/) e [Docker Compose](https://docs.docker.com/compose/)
+- [Go 1.22+](https://golang.org/) _(opzionale per esecuzione nativa)_
+- [Python 3.11+](https://www.python.org/) _(opzionale per esecuzione nativa)_
 
 ---
 
@@ -202,15 +205,16 @@ cd Tesi---Cyber-Deception-SW
 docker compose up --build
 ```
 
-* **Proxy HTTP / WAAP Gateway**: `http://localhost:8080`
-* **Dashboard di Telemetria**: `http://localhost:9090/dashboard` (oppure `http://localhost:8080/dashboard`)
-* **Microservizio AI REST**: `http://localhost:8000/docs` (Swagger UI interattiva)
+- **Proxy HTTP / WAAP Gateway**: `http://localhost:8080`
+- **Dashboard di Telemetria**: `http://localhost:9090/dashboard` (oppure `http://localhost:8080/dashboard`)
+- **Microservizio AI REST**: `http://localhost:8000/docs` (Swagger UI interattiva)
 
 ---
 
 ### Modalità 2: Esecuzione Manuale dei Microservizi
 
 #### 1. Avvio dell'AI Engine (Python)
+
 ```bash
 cd ai-service
 
@@ -232,6 +236,7 @@ uvicorn src.main:app --host 0.0.0.0 --port 8000 --reload
 ```
 
 #### 2. Avvio del Reverse Proxy (Go)
+
 ```bash
 cd proxy
 
@@ -275,6 +280,7 @@ python scripts/simulate_traffic.py
 ## Deployment su Google Cloud Platform (Cloud Run)
 
 ### 1. Deploy del Microservizio AI (`waap-ai-engine`)
+
 ```bash
 gcloud run deploy waap-ai-engine \
   --source ./ai-service \
@@ -285,6 +291,7 @@ gcloud run deploy waap-ai-engine \
 ```
 
 ### 2. Deploy del Reverse Proxy (`waap-proxy`)
+
 ```bash
 gcloud run deploy waap-proxy \
   --source ./proxy \
@@ -299,10 +306,10 @@ gcloud run deploy waap-proxy \
 
 ## Contesto Accademico e Crediti
 
-* **Candidato**: Simone Iozzi
-* **Corso di Laurea**: Laurea Triennale in Informatica
-* **Azienda Partner**: [Apuliasoft S.r.l.](https://www.apuliasoft.com/)
-* **Titolo Tesi**: *Progettazione e implementazione di un Web Application and API Protection (WAAP) integrato con Cyber Deception dinamica e Machine Learning*
+- **Candidato**: Simone Iozzi
+- **Corso di Laurea**: Laurea Triennale in Informatica
+- **Azienda Partner**: [Apuliasoft S.r.l.](https://www.apuliasoft.com/)
+- **Titolo Tesi**: _Progettazione e implementazione di un Web Application and API Protection (WAAP) integrato con Cyber Deception dinamica e Machine Learning_
 
 ---
 
