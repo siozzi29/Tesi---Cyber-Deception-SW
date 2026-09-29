@@ -309,7 +309,7 @@ gcloud run deploy waap-proxy \
 - **Candidato**: Simone Iozzi
 - **Corso di Laurea**: Laurea Triennale in Informatica
 - **Azienda Partner**: [Apuliasoft S.r.l.](https://www.apuliasoft.com/)
-- **Titolo Tesi**: _Progettazione e implementazione di un Web Application and API Protection (WAAP) integrato con Cyber Deception dinamica e Machine Learning_
+- **Titolo Tesi**: _Cyber Deception WAAP: Honey-Token e Machine Learning per la Sicurezza delle Applicazioni Web_
 
 ---
 
