@@ -1,5 +1,22 @@
 services:
 
+  # ─────────────────────────────────────────────────────────────────────
+  # 1. Backend Demo — sostituisce la VM WordPress GCP per il demo locale
+  # ─────────────────────────────────────────────────────────────────────
+  demo-backend:
+    build:
+      context: ./demo-backend
+      dockerfile: Dockerfile
+    container_name: waap_demo_backend
+    ports:
+      - "8888:8888"
+    networks:
+      - waap-net
+    restart: always
+
+  # ─────────────────────────────────────────────────────────────────────
+  # 2. AI Engine — Isolation Forest FastAPI service
+  # ─────────────────────────────────────────────────────────────────────
   ai-service:
     build:
       context: ./ai-service
@@ -14,25 +31,34 @@ services:
     networks:
       - waap-net
     restart: always
+    healthcheck:
+      test: ["CMD", "python", "-c", "import urllib.request; urllib.request.urlopen('http://localhost:8000/health')"]
+      interval: 10s
+      timeout: 5s
+      retries: 5
 
+  # ─────────────────────────────────────────────────────────────────────
+  # 3. WAAP Reverse Proxy (Go) — punta al demo-backend invece della VM
+  # ─────────────────────────────────────────────────────────────────────
   proxy:
     build:
       context: ./proxy
       dockerfile: Dockerfile
     container_name: waap_reverse_proxy
     ports:
-      - "8080:8080"
-      - "9090:9090"
+      - "8080:8080"   # Proxy principale (accesso via http://localhost:8080)
+      - "9090:9090"   # Dashboard di telemetria (http://localhost:9090/dashboard)
     environment:
       - AI_SERVICE_ENDPOINT=http://ai-service:8000/score
-      - WORDPRESS_BACKEND=http://34.53.145.249
+      - WORDPRESS_BACKEND=http://demo-backend:8888
       - LISTEN_ADDR=:8080
       - DASHBOARD_ADDR=:9090
       - RISK_THRESHOLD=0.4760
     depends_on:
-      - ai-service
-    volumes:
-      - ./ai-service/data:/app/ai-data
+      ai-service:
+        condition: service_healthy
+      demo-backend:
+        condition: service_started
     networks:
       - waap-net
     restart: always
