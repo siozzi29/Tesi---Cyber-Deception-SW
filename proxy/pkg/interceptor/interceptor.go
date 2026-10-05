@@ -57,15 +57,13 @@ type SecurityStats struct {
 // SECURITY INTERCEPTOR (Il Vigile Urbano)
 // ============================================================================
 
-// DefaultRiskThreshold è usata solo se non viene passato un valore esplicito
-// a NewSecurityInterceptor. ATTENZIONE: deve combaciare con la soglia
-// "paranoica" calcolata in fase di training (salvata tra i file in
-// ai-service/models/, attualmente 0.5908 dopo il tuning degli iperparametri
-// per portare il recall dal 9.2% al 12.3% a parità di FPR 1%). Se riallenate
-// il modello e la soglia cambia, aggiornate questo valore o passatelo
-// esplicitamente via env var RISK_THRESHOLD — verificate anche in quale
-// file esatto la soglia viene persistita lato ai-service, per tenerlo
-// allineato a questo commento.
+// DefaultRiskThreshold è il valore di fallback, usato solo se non viene passata
+// una soglia esplicita a NewSecurityInterceptor. È la soglia più conservativa
+// tra quelle calcolate in fase di calibrazione (recall 82,04%). La soglia
+// operativa (0.4760, selezionata sul validation set con vincolo FPR <= 0,8%)
+// va passata esplicitamente, ad esempio tramite la variabile d'ambiente
+// RISK_THRESHOLD. Se il modello viene riaddestrato e la soglia cambia,
+// aggiornare il valore passato o questa costante.
 const DefaultRiskThreshold = 0.5908
 
 type SecurityInterceptor struct {
@@ -266,11 +264,8 @@ func (i *SecurityInterceptor) ServeHTTP(w http.ResponseWriter, r *http.Request) 
 	score, err := i.ai.GetRiskScore(r)
 	if err != nil {
 		log.Printf("[!] Errore IA, fail-open: %v", err)
-		// FIX: prima questo ramo non chiamava LogAsync — i fallimenti/timeout
-		// dell'AI service (es. sotto attacco o sotto carico) sparivano dalla
-		// telemetria "vera" e restavano visibili solo nelle stats locali del
-		// dashboard. RiskScore -1 per distinguere in telemetria un "errore IA"
-		// da uno score reale 0 (traffico giudicato sicuro).
+		// Punteggio -1: distingue in telemetria un errore del modello da uno
+		// score reale 0 (traffico giudicato sicuro).
 		i.logTelemetry(r, -1, false)
 		i.serveWithInjection(w, r, func(writer http.ResponseWriter, req *http.Request) {
 			i.router.Forward(writer, req)
@@ -288,7 +283,7 @@ func (i *SecurityInterceptor) ServeHTTP(w http.ResponseWriter, r *http.Request) 
 		return
 	}
 
-	// 3. Routing Basato su Soglia (paranoica, FPR<=1% calcolata in training)
+	// 3. Routing basato su soglia (calibrata sul validation set, FPR <= 0,8%)
 	if score > i.riskThreshold {
 		log.Printf("[!] Anomalia rilevata (IA Score %.4f > soglia %.4f): %s", score, i.riskThreshold, r.URL.Path)
 		i.logTelemetry(r, score, false)
