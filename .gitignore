@@ -223,3 +223,4 @@ ai-service/models/random_forest_supervised.joblib
 ai-service/models/*.png
 *.exe
 waap-proxy
+proxy-bin

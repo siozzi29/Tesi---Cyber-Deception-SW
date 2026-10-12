@@ -53,3 +53,29 @@ def test_json_body_not_parsed_as_params():
     vec = extract_features("/api", "POST", "user=a&pass=b", "application/json")
     idx = FEATURE_NAMES.index("num_body_params")
     assert vec[idx] == 0
+
+
+def test_sql_injection_detected_in_body():
+    vec = extract_features("/login", "POST", "user=' OR 1=1--&pass=x", "application/x-www-form-urlencoded")
+    idx = FEATURE_NAMES.index("sql_keyword_count_body")
+    assert vec[idx] > 0
+
+
+def test_double_encoding_and_null_byte_detected():
+    vec = extract_features("/search?q=%2527script%2500", "GET", "", "")
+    idx_double = FEATURE_NAMES.index("has_double_encoding")
+    idx_null = FEATURE_NAMES.index("has_null_byte")
+    assert vec[idx_double] == 1
+    assert vec[idx_null] == 1
+
+
+def test_unexpected_body_flag_on_get():
+    vec = extract_features("/api/data", "GET", "body_non_atteso", "")
+    idx = FEATURE_NAMES.index("has_body")
+    assert vec[idx] == 1
+
+
+def test_http_parameter_pollution_detected():
+    vec = extract_features("/page?id=1&id=2&id=3&cat=x&cat=y", "GET", "", "")
+    idx = FEATURE_NAMES.index("num_duplicate_params")
+    assert vec[idx] > 0

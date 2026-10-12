@@ -57,7 +57,7 @@ def run(playwright):
     print("[*] Eseguo il Login come amministratore...")
     page.goto(f"{BASE_URL}/wp-login.php")
     page.fill("#user_login", "admin")
-    page.fill("#user_pass", "secretpassword")
+    page.fill("#user_pass", "PASSWORD_DI_TEST")
     page.click("#wp-submit")
     page.wait_for_load_state("networkidle")
     print("[+] Login completato.")

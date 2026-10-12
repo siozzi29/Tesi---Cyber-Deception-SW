@@ -75,7 +75,7 @@ def main():
     login_url = f"{BASE_URL}/wp-login.php"
     login_data = {
         "log": "admin",
-        "pwd": "password_finta_per_ai",
+        "pwd": "PASSWORD_DI_TEST",
         "wp-submit": "Log In",
         "redirect_to": f"{BASE_URL}/wp-admin/",
         "testcookie": "1"
@@ -89,7 +89,7 @@ def main():
         
     # Salva la traccia nel dataset in modo che l'AI la consideri normale (Data Augmentation x300)
     for _ in range(300):
-        login_content_str = "log=admin&pwd=password_finta_per_ai&wp-submit=Log+In&redirect_to=http%3A%2F%2Flocalhost%3A8080%2Fwp-admin%2F&testcookie=1"
+        login_content_str = "log=admin&pwd=PASSWORD_DI_TEST&wp-submit=Log+In&redirect_to=http%3A%2F%2Flocalhost%3A8080%2Fwp-admin%2F&testcookie=1"
         dataset_records.append([extract_path(login_url), "POST", login_content_str, "application/x-www-form-urlencoded", 0])
     
     # B. Salvataggio di 200 finte Bozze per addestramento massiccio

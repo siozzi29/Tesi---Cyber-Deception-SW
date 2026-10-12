@@ -83,7 +83,7 @@ def generate_wordpress_traffic(num_requests=500):
             sub_choice = random.choice(["login", "post", "comment", "ajax"])
             if sub_choice == "login":
                 url = "/wp-login.php"
-                content = "log=admin&pwd=secretpassword&wp-submit=Log+In&redirect_to=%2Fwp-admin%2F"
+                content = "log=admin&pwd=PASSWORD_DI_TEST&wp-submit=Log+In&redirect_to=%2Fwp-admin%2F"
                 ct = "application/x-www-form-urlencoded"
             elif sub_choice == "post":
                 url = "/wp-admin/post.php"

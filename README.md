@@ -25,7 +25,8 @@
    - [Modalità 2: Esecuzione Manuale dei Microservizi](#modalità-2-esecuzione-manuale-dei-microservizi)
 8. [Testing e Simulazione di Traffico](#testing-e-simulazione-di-traffico)
 9. [Deployment su Google Cloud Platform (Cloud Run)](#deployment-su-google-cloud-platform-cloud-run)
-10. [Contesto Accademico e Crediti](#contesto-accademico-e-crediti)
+10. [Limiti Noti](#limiti-noti)
+11. [Contesto Accademico e Crediti](#contesto-accademico-e-crediti)
 
 ---
 
@@ -38,7 +39,7 @@ I Web Application Firewall (WAF) tradizionali basati su regole deterministiche e
 
 Questo progetto implementa una soluzione **WAAP di nuova generazione** a doppia barriera difensiva:
 
-- **Cyber Deception Dinamica (Honey-Tokens)**: il Reverse Proxy inietta a runtime trappole invisibili agli utenti umani (`display:none` nel DOM HTML). Se uno scanner o crawler automatico richiede l'esca, viene identificato all'istante con **100% di accuratezza e zero falsi positivi**.
+- **Cyber Deception Dinamica (Honey-Tokens)**: il Reverse Proxy inietta a runtime trappole invisibili agli utenti umani (`display:none` nel DOM HTML). Se uno scanner o crawler automatico richiede l'esca, l'accesso a un Honey-URL identifica il client come bot senza usare il modello di Machine Learning.
 - **Intelligenza Artificiale Comportamentale (Isolation Forest)**: un motore di Machine Learning analizza ogni richiesta HTTP estraendo **44 feature dimensionali** (strutturali, entropiche, sintattiche ed euristiche di attacco/evasione), quantificando in millisecondi il livello di rischio (_Risk Score_ compreso tra 0 e 1).
 - **Risposta Asimmetrica Attiva (Tarpitting)**: gli attaccanti identificati vengono intrappolati in un ritardo forzato di 3 secondi (_Slowloris inverso_) prima di ricevere un finto messaggio di errore, invertendo i costi computazionali ed esaurendo i thread di scansione dell'attaccante.
 
@@ -150,7 +151,7 @@ Il modello di Anomaly Detection si basa sull'algoritmo **Isolation Forest** conf
 
 1. **Addestramento Unsupervised su Traffico Puro**: Il modello viene addestrato **esclusivamente su 81.357 richieste lecite reali di WordPress** (0% contaminazione di attacchi nella fase di fitting).
 2. **Deduplicazione Anti Data-Leakage**: I dataset pubblici di attacchi (CSIC 2010 / ECML) sono stati deduplicati su `(method, url, content)`, riducendo il corpus da 63.735 a 28.331 payload unici per evitare sovrastime artificiali delle metriche.
-3. **Calibrazione della Soglia di Rischio**: Una Grid Search sul Validation Set determina la soglia ottimale $\tau = 0.4377$ imponendo un vincolo paranoico di **False Positive Rate (FPR) $\le 1\%$** sul traffico sano.
+3. **Calibrazione della Soglia di Rischio**: Una Grid Search sul Validation Set determina la soglia ottimale $\tau = 0.4377$ imponendo un vincolo prudenziale di **False Positive Rate (FPR) $\le 0,8\%$** sul traffico sano.
 
 ```bash
 # Esecuzione pipeline completa di training e validazione
@@ -171,6 +172,8 @@ python -m src.train
 | **F1-Score**                |         **97.17%**         | Bilanciamento armonico ottimale                 |
 | **AUC-ROC**                 |         **0.9987**         | Separabilità quasi perfetta delle distribuzioni |
 | **5-Fold Cross Validation** | $\tau = 0.4623 \pm 0.0218$ | Recall stabile al $94.20\% \pm 1.56\%$          |
+
+> **Nota**: I valori $\tau = 0,4377$ e Recall $94,99\%$ rappresentano i valori teorici calcolati dal modello. La soglia operativa usata nel deploy è 0,4760 (recall 90,73% sull'insieme di verifica, FPR <= 0,8%). La soglia di riserva 0,5908 è il default nel codice (interceptor.go) e fornisce recall 82,04%: per usare 0,4760 va impostata la variabile d'ambiente RISK_THRESHOLD.
 
 ### 2. Valutazione della Latenza End-to-End
 
@@ -301,6 +304,12 @@ gcloud run deploy waap-proxy \
   --set-env-vars="WORDPRESS_BACKEND=http://34.53.145.249,AI_SERVICE_ENDPOINT=https://waap-ai-engine-<PROJECT_ID>.europe-west1.run.app/score,RISK_THRESHOLD=0.4760" \
   --allow-unauthenticated
 ```
+
+---
+
+## Limiti Noti
+
+Gli endpoint `/dashboard`, `/dashboard/stats`, `/dashboard/events`, `/dashboard/save_events`, `/dashboard/retrain` e `/dashboard/download_dataset` non hanno autenticazione e, su un proxy pubblico, sono raggiungibili da chiunque; in produzione vanno protetti o disabilitati.
 
 ---
 
